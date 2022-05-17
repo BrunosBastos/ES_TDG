@@ -1,1 +1,1 @@
-"# Template Document Generator"
+# Template Document Generator
