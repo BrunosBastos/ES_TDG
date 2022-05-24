@@ -14,7 +14,6 @@ import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 
 
-console.log(config.SHOW_TEMPLATE);
 // ----------------------------------------------------------------------
 
 const Element = ({as, include}) => {
