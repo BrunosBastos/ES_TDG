@@ -6,3 +6,13 @@ services:
       dockerfile: ../Docker/Dockerfile.backend
     ports: 
       - 8000:8000
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../Docker/Dockerfile.frontend
+    environment:
+      - HOST_NAME=ec2-18-215-185-124.compute-1.amazonaws.com
+    ports:
+      - 80:80
+    depends_on:
+      - backend
