@@ -15,10 +15,6 @@ app = FastAPI()
 bucket_name = "tdg-s3-bucket"
 
 
-# s3 = boto3.client('s3')           # chooses s3 service from AWS
-# s3.download_file("tdg-s3-bucket", 'nome do bucket', "nome do ficheiro para guardar")
-
-
 @app.post("/files")
 async def post_template(upload_file: UploadFile = File(...), s3 = Depends(get_client_s3)) -> JSONResponse:
     """

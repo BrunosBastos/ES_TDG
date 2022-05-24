@@ -2,7 +2,6 @@ import boto3
 from fastapi.responses import JSONResponse
 
 
-
 def get_client_s3() -> boto3.client:
     """
     Creates a boto3 client. This function can be used as dependency injection in
