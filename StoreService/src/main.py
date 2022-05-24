@@ -15,7 +15,7 @@ app = FastAPI()
 bucket_name = "tdg-s3-bucket"
 
 
-@app.post("/files")
+@app.post("/api/files")
 async def post_template(upload_file: UploadFile = File(...), s3 = Depends(get_client_s3)) -> JSONResponse:
     """
     Endpoint ``/files`` that accepts the method POST. Receives a file and 
