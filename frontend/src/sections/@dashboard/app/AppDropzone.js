@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 import { Card, CardHeader, Box, Button } from '@mui/material';
 
 import FileService from '../../../services/FileService';
+
+const service = FileService.getInstance();
 
 const baseStyle = {
     flex: 1,
@@ -63,6 +65,8 @@ function fileValidator(file) {
 }
 
 export default function Dropzone({ title, subheader, other }) {
+    const [response, setResponse] = useState("");
+
     const {
         acceptedFiles,
         fileRejections,
@@ -108,9 +112,13 @@ export default function Dropzone({ title, subheader, other }) {
             return;
         }
 
-        uploadFile(acceptedFiles[0])
+        const formData = new FormData();
+        formData.set('upload_file', acceptedFiles[0]);
+
+        service.uploadFile(formData)
             .then(res => res.json())
-            .then(console.log)
+            .then(res => setResponse(res.message))
+            .catch(_ => setResponse("Error uploading file"))
     }
 
     return (
@@ -133,6 +141,7 @@ export default function Dropzone({ title, subheader, other }) {
                     <Button onClick={onSubmit} variant="contained">
                         Upload
                     </Button>
+                    {response}
                 </section>
 
             </Box>
