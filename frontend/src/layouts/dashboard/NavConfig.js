@@ -12,6 +12,11 @@ const navConfig = [
     path: '/dashboard/app',
     icon: getIcon('eva:file-text-fill'),
   },
+  {
+    title: 'show files',
+    path: '/dashboard/files',
+    icon: getIcon('eva:shopping-bag-fill'),
+  },
   config.SHOW_TEMPLATE && {...[{
     title: 'user',
     path: '/dashboard/user',
