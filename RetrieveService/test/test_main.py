@@ -12,7 +12,6 @@ def test_return_file_names_and_size():
     Given a user
     When he request the templates that have been stored in the S3
     The the API should return their file names and size
-    :return:
     """
 
     conn = boto3.resource('s3')
