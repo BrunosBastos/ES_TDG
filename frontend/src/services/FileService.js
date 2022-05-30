@@ -12,7 +12,7 @@ class FileService {
     }
 
     async uploadFile(payload) {
-        return fetch(config.API_URL + "/files", {
+        return fetch(config.API_URL + "/1/files", {
             headers: {
                 'Accept': 'application/json',
             },
@@ -21,6 +21,17 @@ class FileService {
             body: payload
         })
     }
+
+    async getAllFiles() {
+        return fetch(config.API_URL + "/2/files", {
+            headers: {
+                'Accept': 'application/json',
+            },
+            mode: "cors",
+            method: "GET",
+        })
+    }
+
 }
 
 export default FileService;
