@@ -1,12 +1,16 @@
 import logging
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, UploadFile, File, Depends, Form
 from fastapi.responses import JSONResponse
 from botocore.exceptions import ClientError
+import boto3
 
 import json
 import openpyxl as oxl
 
 from utils import create_response, get_client_s3
+
+app = FastAPI()
+bucket_name = "tdg-s3-bucket"
 
 # Logger
 logging.basicConfig(
@@ -15,7 +19,9 @@ logging.basicConfig(
 )
 
 @app.post("/api/3/fill")
-async def post_template(upload_file: UploadFile = File(...), s3 = Depends(get_client_s3)) -> JSONResponse:
+
+async def post_template(upload_file: UploadFile = File(...), retrieval_filename: str = Form(), output_filename: str = Form(), s3 = Depends(get_client_s3)) -> JSONResponse:
+
     """
     Endpoint ``/fill`` that accepts the method POST. Receives a JSON file and a template name.
 
@@ -30,22 +36,31 @@ async def post_template(upload_file: UploadFile = File(...), s3 = Depends(get_cl
             Json response with the status code and data containing the message and data. 
     
     """
-    
-    # TODO get template from s3 and save temporary
+    try:
+        # load json data
+        data = json.load(upload_file.file)
 
-    # TODO save json temporary
+        s3_client = boto3.client("s3")
+        bucket_name = "tdg-s3-bucket"
+        s3_client.download_file(bucket_name, retrieval_filename, retrieval_filename)
+
+        fill_template(retrieval_filename, data, output_filename)
+
+        s3.upload_fileobj(open(output_filename, "rb"), bucket_name, output_filename)
+
+        return create_response(status_code=200, data=output_filename)
+
+    except ClientError as e:
+        logging.debug(e)
+        return create_response(status_code=400, message=e)
+
+    # fill_template("template_name", "json_name", "filled_file_name")
 
 
-    fill_template("template_name", "json_name", "filled_file_name")
-
-
-def fill_template(template_name, json_name, filled_file_name):
+def fill_template(template_name, data, filled_file_name):
 
     # load template 
     template = oxl.load_workbook(template_name)
-
-    # load json data
-    data = json.loads(open(json_name, "r").read())
 
     i=0
     # go through all sheets
