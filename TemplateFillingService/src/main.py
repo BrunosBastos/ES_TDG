@@ -9,10 +9,8 @@ import openpyxl as oxl
 
 from utils import create_response, get_client_s3
 
-
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
-
 
 # Logger
 logging.basicConfig(
@@ -21,7 +19,9 @@ logging.basicConfig(
 )
 
 @app.post("/api/3/fill")
+
 async def post_template(upload_file: UploadFile = File(...), retrieval_filename: str = Form(), output_filename: str = Form(), s3 = Depends(get_client_s3)) -> JSONResponse:
+
     """
     Endpoint ``/fill`` that accepts the method POST. Receives a JSON file and a template name.
 
