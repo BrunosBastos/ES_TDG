@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 // material
 import {
     Card,
@@ -27,17 +28,28 @@ const service = FileService.getInstance();
 
 export default function ListTemplates() {
     const [rows, setRows] = useState(null);
+    const [selected, setSelected] = useState("");        // contains the name of the selected template
+    const [file, setFile] = useState(null);
+    const [filledFilename, setFilledFilename] = useState("");
 
     const [open, setOpen] = React.useState(false);
 
-    const handleClickOpen = () => {
+    const handleClickOpen = (templateName) => {
+        setSelected(templateName);
         setOpen(true);
     };
 
     const handleClose = () => {
+        setSelected("");
+        setFile(null);
+        setFilledFilename("");
         setOpen(false);
     };
 
+    const handleUploadJson = (e) => {
+        setFile(e.target.files[0]);
+        toast.success("Selected file " + e.target.files[0].name);
+    }
 
     useEffect(() => {
         service.getAllFiles()
@@ -60,15 +72,20 @@ export default function ListTemplates() {
             return size + " B";
     }
 
-    const uploadJsonData = (template, jsonData, filename) => {
+    const uploadJsonData = () => {
+        if (selected == "" || file == null || filledFilename == "")
+            return;
+        
         const formData = new FormData();
-        formData.set('upload_file', jsonData);
-        formData.set('output_file', filename);
-        formData.set('retrieval_file', template);
+        formData.set('upload_file', file);
+        formData.set('output_filename', filledFilename);
+        formData.set('retrieval_filename', selected);
         service.uploadJsonData(formData)
             .then(res => res.json())
-            .then(res => console.log(res))
-            .catch(_ => console.log("error"));
+            .then(res => toast.success("Successfully filled the template."))
+            .catch(error => toast.error(error));
+        
+        handleClose();
     }
 
 
@@ -76,25 +93,40 @@ export default function ListTemplates() {
         <>
             <div>
                 <Dialog open={open} onClose={handleClose}>
-                    <DialogTitle>Subscribe</DialogTitle>
-                    <DialogContent>
+                    <DialogTitle>Upload Json Data</DialogTitle>
+                    <DialogContent style={{ textAlign: "center" }}>
                         <DialogContentText>
-                            To subscribe to this website, please enter your email address here. We
-                            will send updates occasionally.
+                            Import your data to fill the selected template.
                         </DialogContentText>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Email Address"
-                            type="email"
-                            fullWidth
-                            variant="standard"
-                        />
+                        <div style={{ display: "flex", alignItems: "flex-end" }}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="name"
+                                label="Filename"
+                                type="text"
+                                variant="standard"
+                                onChange={(e) => setFilledFilename(e.target.value)}
+                            />
+                            <div style={{margin: 10}}>
+                                <Button
+                                    variant="outlined"
+                                    component="label"
+                                >
+                                    Upload File
+                                    <input
+                                        onChange={handleUploadJson}
+                                        type="file"
+                                        hidden
+                                    />
+                                </Button>
+                            </div>
+                        </div>
+
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleClose}>Cancel</Button>
-                        <Button onClick={handleClose}>Subscribe</Button>
+                        <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -114,9 +146,7 @@ export default function ListTemplates() {
                                             <TableCell style={{ width: "80%" }} align="left">Name</TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">Size</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left">
-                                                <Button variant="outlined" onClick={handleClickOpen}>
-                                                    Edit
-                                                </Button>
+
                                             </TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -130,7 +160,11 @@ export default function ListTemplates() {
                                                     {row.Name}
                                                 </TableCell>
                                                 <TableCell style={{ width: "15%" }} align="right">{convertSize(row.Size)}</TableCell>
-                                                <TableCell style={{ width: "5%" }} align="left" >Fill</TableCell>
+                                                <TableCell style={{ width: "5%" }} align="left" >
+                                                    <Button variant="outlined" onClick={() => { handleClickOpen(row.Name) }}>
+                                                        Fill
+                                                    </Button>
+                                                </TableCell>
 
                                             </TableRow>
                                         ))}
