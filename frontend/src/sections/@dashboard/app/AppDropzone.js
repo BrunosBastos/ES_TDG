@@ -138,7 +138,7 @@ export default function Dropzone({ title, subheader, other }) {
                         <h4>Rejected files</h4>
                         <ul>{fileRejectionItems}</ul>
                     </aside>
-                    <Button onClick={onSubmit} variant="contained">
+                    <Button onClick={onSubmit} variant="contained" disabled={acceptedFiles.length === 0}>
                         Upload
                     </Button>
                     {response}

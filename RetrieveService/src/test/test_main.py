@@ -14,7 +14,6 @@ def test_return_file_names_and_size():
     When he request the templates that have been stored in the S3
     The the API should return their file names and size
     """
-
     conn = boto3.resource('s3')
     conn.create_bucket(Bucket=bucket_name)
 

@@ -57,3 +57,4 @@ def download_template(file_name: str, s3=Depends(get_client_s3)
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=str(e))
+
