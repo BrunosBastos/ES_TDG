@@ -19,6 +19,7 @@ bucket_name = "tdg-s3-bucket"
 @app.get("/api/2/files")
 async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
     """
+
     Endpoint ``/files`` that accepts the method GET. Returns all the
     file names and sizes
 

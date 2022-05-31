@@ -33,7 +33,6 @@ async def post_template(
         response : `JSONResponse`
             Json response with the status code and data containing the message
             and data.
-
     """
 
     try:
