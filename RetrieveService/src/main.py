@@ -1,6 +1,6 @@
 import logging
 import boto3
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from botocore.exceptions import ClientError
 
@@ -18,7 +18,7 @@ bucket_name = "tdg-s3-bucket"
 
 
 @app.get("/api/2/files")
-async def get_templates(s3 = Depends(get_client_s3)) -> JSONResponse:
+async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
     """
     Endpoint ``/files`` that accepts the method GET. Returns all the file names and sizes
     
