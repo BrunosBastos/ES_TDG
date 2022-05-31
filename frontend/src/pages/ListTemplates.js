@@ -23,6 +23,20 @@ export default function ListTemplates() {
 
     }, []);
 
+    /**
+     * Takes the size of a file and converts it to the closest magnitude of measurament.
+     * The units should be rounded to 1 decimal place.
+     * @param {int} size 
+     */
+    const convertSize = (size) => {
+        if (size > 1000000)
+            return Math.round(size / 100000) / 10 + " MB";
+        else if (size > 1000) 
+            return Math.round(size / 100) / 10 + " KB";
+        else 
+            return size + " B";
+    }
+
 
     return (
         <Card>
@@ -47,7 +61,7 @@ export default function ListTemplates() {
                                         <TableCell style={{width: "80%"}} component="th" scope="row">
                                             {row.Name}
                                         </TableCell>
-                                        <TableCell style={{width: "15%"}}  align="right">{row.Size}</TableCell>
+                                        <TableCell style={{width: "15%"}}  align="right">{convertSize(row.Size)}</TableCell>
                                         <TableCell style={{width: "5%"}}  align="left"></TableCell>
 
                                     </TableRow>
