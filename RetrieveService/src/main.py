@@ -1,13 +1,8 @@
 import logging
-import boto3
-from fastapi import FastAPI, UploadFile, File, Depends
-from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
+from fastapi import FastAPI, Depends
+from fastapi.responses import JSONResponse, FileResponse
 from botocore.exceptions import ClientError
-# import tempfile
-# import io
-import os
 from typing import Union
-
 from utils import create_response, get_client_s3
 
 # Logger
