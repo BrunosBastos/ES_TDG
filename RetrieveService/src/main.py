@@ -19,14 +19,15 @@ bucket_name = "tdg-s3-bucket"
 @app.get("/api/2/files")
 async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
     """
-    Endpoint ``/files`` that accepts the method GET. Returns all the 
+
+    Endpoint ``/files`` that accepts the method GET. Returns all the
     file names and sizes
 
     Returns
     -------
         response : `JSONResponse`
             Json response with the status code and data containing
-            the message and data. 
+            the message and data.
     """
     try:
         files = s3.list_objects_v2(Bucket=bucket_name)["Contents"]
@@ -47,8 +48,8 @@ def download_template(file_name: str, s3=Depends(get_client_s3)
     Returns
     -------
         response : `JSONResponse` or `FileResponse`
-            Json response with the status code and data containing the 
-            message and data. 
+            Json response with the status code and data containing the
+            message and data.
     """
     try:
         s3.download_file(bucket_name, file_name, 'temp')
@@ -57,4 +58,3 @@ def download_template(file_name: str, s3=Depends(get_client_s3)
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=str(e))
-
