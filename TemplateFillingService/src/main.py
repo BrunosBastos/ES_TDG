@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 @app.post("/api/3/fill")
-async def post_template(upload_file: UploadFile = File(...), retrival_file: str = Form(), output_file: str = Form(), s3 = Depends(get_client_s3)) -> JSONResponse:
+async def post_template(upload_file: UploadFile = File(...), retrieval_filename: str = Form(), output_filename: str = Form(), s3 = Depends(get_client_s3)) -> JSONResponse:
     """
     Endpoint ``/fill`` that accepts the method POST. Receives a JSON file and a template name.
 
@@ -42,13 +42,13 @@ async def post_template(upload_file: UploadFile = File(...), retrival_file: str 
 
         s3_client = boto3.client("s3")
         bucket_name = "tdg-s3-bucket"
-        s3_client.download_file(bucket_name, retrival_file, retrival_file)
+        s3_client.download_file(bucket_name, retrieval_filename, retrieval_filename)
 
-        fill_template(retrival_file, data, output_file)
+        fill_template(retrieval_filename, data, output_filename)
 
-        s3.upload_fileobj(open(output_file, "rb"), bucket_name, output_file)
+        s3.upload_fileobj(open(output_filename, "rb"), bucket_name, output_filename)
 
-        return create_response(status_code=200, data=output_file)
+        return create_response(status_code=200, data=output_filename)
 
     except ClientError as e:
         logging.debug(e)
