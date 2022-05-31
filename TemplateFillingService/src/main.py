@@ -18,23 +18,30 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-@app.post("/api/3/fill")
 
-async def post_template(upload_file: UploadFile = File(...), retrieval_filename: str = Form(), output_filename: str = Form(), s3 = Depends(get_client_s3)) -> JSONResponse:
+@app.post("/api/3/fill")
+async def post_template(
+    upload_file: UploadFile = File(...),
+    retrieval_filename: str = Form(),
+    output_filename: str = Form(),
+    s3=Depends(get_client_s3)
+) -> JSONResponse:
 
     """
-    Endpoint ``/fill`` that accepts the method POST. Receives a JSON file and a template name.
+    Endpoint ``/fill`` that accepts the method POST. Receives a JSON file
+    and a template name.
 
     Parameters
     ----------
         upload_file : `UploadFile`
             The file provided in the POST request
-    
+
     Returns
     -------
         response : `JSONResponse`
-            Json response with the status code and data containing the message and data. 
-    
+            Json response with the status code and data containing the message
+            and data.
+
     """
     try:
         # load json data
@@ -42,11 +49,15 @@ async def post_template(upload_file: UploadFile = File(...), retrieval_filename:
 
         s3_client = boto3.client("s3")
         bucket_name = "tdg-s3-bucket"
-        s3_client.download_file(bucket_name, retrieval_filename, retrieval_filename)
+        s3_client.download_file(
+            bucket_name, retrieval_filename, retrieval_filename
+        )
 
         fill_template(retrieval_filename, data, output_filename)
 
-        s3.upload_fileobj(open(output_filename, "rb"), bucket_name, output_filename)
+        s3.upload_fileobj(
+            open(output_filename, "rb"), bucket_name, output_filename
+        )
 
         return create_response(status_code=200, data=output_filename)
 
@@ -59,24 +70,24 @@ async def post_template(upload_file: UploadFile = File(...), retrieval_filename:
 
 def fill_template(template_name, data, filled_file_name):
 
-    # load template 
+    # load template
     template = oxl.load_workbook(template_name)
 
-    i=0
+    i = 0
     # go through all sheets
     for sheet in template.sheetnames:
-        
-        if i>0 and sheet not in template:
-            #create new sheet
-            ws = template.create_sheet(index = i , title = sheet)
+
+        if i > 0 and sheet not in template:
+            # create new sheet
+            ws = template.create_sheet(index=i, title=sheet)
         else:
             ws = template[sheet]
 
-        #fill sheet with data 
+        # fill sheet with data
         for cell in data[i][sheet]:
             cell_number = list(cell.keys())
             ws[cell_number[0]] = cell[cell_number[0]]
 
-        i+=1
+        i += 1
 
     template.save(filled_file_name)
