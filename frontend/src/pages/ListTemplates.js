@@ -1,4 +1,5 @@
 import React from 'react';
+// material
 import { Card, CardHeader, Box, Button } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,6 +8,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
+// services
 import FileService from 'src/services/FileService';
 
 const service = FileService.getInstance();
@@ -27,7 +30,7 @@ export default function ListTemplates() {
     return (
         <Card>
             <CardHeader title={"List Files"} subheader={"See your files"} />
-            <Box sx={{ p: 3, pb: 1 }} dir="ltr">
+            <Box sx={{ p: 3, pb: 1, minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} dir="ltr">
                 {rows.length != 0 ?
                     <TableContainer component={Paper}>
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -55,9 +58,8 @@ export default function ListTemplates() {
                             </TableBody>
                         </Table>
                     </TableContainer>
-                : <h1>No results found!</h1>}
+                : <CircularProgress />}
             </Box>
-
         </Card>
     )
 }
