@@ -21,6 +21,7 @@ def test_files_correct_file():
         "/api/files", files={"upload_file": open("main.py", "rb")}
     )
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 @mock_s3
 def test_files_override_file():
@@ -40,4 +41,5 @@ def test_files_override_file():
         "/api/files", files={"upload_file": open("main.py", "rb")}
     )
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
 

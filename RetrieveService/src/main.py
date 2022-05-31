@@ -24,14 +24,15 @@ bucket_name = "tdg-s3-bucket"
 @app.get("/api/2/files")
 async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
     """
-    Endpoint ``/files`` that accepts the method GET. Returns all the file names and sizes
+    Endpoint ``/files`` that accepts the method GET. Returns all the 
+    file names and sizes
 
     Returns
     -------
         response : `JSONResponse`
-            Json response with the status code and data containing the message and data. 
+            Json response with the status code and data containing
+            the message and data. 
     """
-
     try:
         files = s3.list_objects_v2(Bucket=bucket_name)["Contents"]
         final_files = [{'Name': f['Key'], 'Size': f['Size']} for f in files]
@@ -42,19 +43,22 @@ async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
 
 
 @app.get("/api/2/files/{file_name}")
-def download_template(file_name: str, s3=Depends(get_client_s3)) -> Union[JSONResponse, FileResponse]:
+def download_template(file_name: str, s3=Depends(get_client_s3)
+                      ) -> Union[JSONResponse, FileResponse]:
     """
-    Endpoint ``/files/{file_name}`` that accepts the method GET. Returns the file 
+    Endpoint ``/files/{file_name}`` that accepts the method GET. Returns
+    the template file requested.
 
     Returns
     -------
         response : `JSONResponse` or `FileResponse`
-            Json response with the status code and data containing the message and data. 
+            Json response with the status code and data containing the 
+            message and data. 
     """
-
     try:
         s3.download_file(bucket_name, file_name, 'temp')
-        return FileResponse('temp', media_type='application/octet-stream', filename=file_name)
+        return FileResponse('temp', media_type='application/octet-stream',
+                            filename=file_name)
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=str(e))
