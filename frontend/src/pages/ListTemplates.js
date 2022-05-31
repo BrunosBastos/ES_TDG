@@ -23,7 +23,7 @@ export default function ListTemplates() {
             .then(res => { console.log(res); setRows(res.data); })
             .catch(_ => setRows([]));
     }, []);
-  
+
     /**
      * Takes the size of a file and converts it to the closest magnitude of measurament.
      * The units should be rounded to 1 decimal place.
@@ -32,9 +32,9 @@ export default function ListTemplates() {
     const convertSize = (size) => {
         if (size > 1000000)
             return Math.round(size / 100000) / 10 + " MB";
-        else if (size > 1000) 
+        else if (size > 1000)
             return Math.round(size / 100) / 10 + " KB";
-        else 
+        else
             return size + " B";
     }
 
@@ -46,7 +46,7 @@ export default function ListTemplates() {
                     <CircularProgress />
                     :
                     rows?.length === 0 ?
-                        <h2 style={{color: "#637381"}}>Your files storage is empty.</h2>
+                        <h2 style={{ color: "#637381" }}>Your files storage is empty.</h2>
                         :
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -55,7 +55,7 @@ export default function ListTemplates() {
                                         <TableCell style={{ width: "80%" }} align="left">Name</TableCell>
                                         <TableCell style={{ width: "15%" }} align="right">Size</TableCell>
                                         <TableCell style={{ width: "5%" }} align="left"></TableCell>
-                                </TableRow>
+                                    </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {rows.map((row) => (
@@ -63,31 +63,17 @@ export default function ListTemplates() {
                                             key={row.Name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{width: "80%"}} component="th" scope="row">
+                                            <TableCell style={{ width: "80%" }} component="th" scope="row">
                                                 {row.Name}
                                             </TableCell>
-                                            <TableCell style={{width: "15%"}}  align="right">{convertSize(row.Size)}</TableCell>
-                                            <TableCell style={{width: "5%"}}  align="left"></TableCell>
+                                            <TableCell style={{ width: "15%" }} align="right">{convertSize(row.Size)}</TableCell>
+                                            <TableCell style={{ width: "5%" }} align="left"></TableCell>
 
                                         </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {rows.map((row) => (
-                                            <TableRow
-                                                key={row.Name}
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            >
-                                                <TableCell style={{ width: "80%" }} component="th" scope="row">
-                                                    {row.Name}
-                                                </TableCell>
-                                                <TableCell style={{ width: "15%" }} align="right">{row.Size}</TableCell>
-                                                <TableCell style={{ width: "5%" }} align="left"></TableCell>
-
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                 }
             </Box>
         </Card>
