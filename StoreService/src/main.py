@@ -40,6 +40,6 @@ async def post_template(
         s3.upload_fileobj(upload_file.file, bucket_name, upload_file.filename)
     except ClientError as e:
         logging.debug(e)
-        return create_response(status_code=400, message=e)
+        return create_response(status_code=400, message=str(e))
 
     return create_response(status_code=200, message="Success storing file.")
