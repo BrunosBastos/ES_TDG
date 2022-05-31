@@ -13,7 +13,7 @@ def test_files_correct_file():
     When the user calls the endpoint
     Then it saves the file in the bucket.
     """
-    
+
     conn = boto3.resource('s3', region_name='us-east-1')
     conn.create_bucket(Bucket='tdg-s3-bucket')
 
@@ -22,6 +22,7 @@ def test_files_correct_file():
     )
     assert response.status_code == 200
     assert response.headers["Access-Control-Allow-Origin"] == "*"
+
 
 @mock_s3
 def test_files_override_file():
@@ -36,10 +37,9 @@ def test_files_override_file():
 
     s3 = boto3.client('s3')
     s3.put_object(Bucket='tdg-s3-bucket', Key="main.py", Body="test")
-    
+
     response = test_app.post(
         "/api/1/files", files={"upload_file": open("main.py", "rb")}
     )
     assert response.status_code == 200
     assert response.headers["Access-Control-Allow-Origin"] == "*"
-
