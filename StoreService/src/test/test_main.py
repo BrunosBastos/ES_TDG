@@ -18,7 +18,7 @@ def test_files_correct_file():
     conn.create_bucket(Bucket='tdg-s3-bucket')
 
     response = test_app.post(
-        "/api/files", files={"upload_file": open("main.py", "rb")}
+        "/api/1/files", files={"upload_file": open("main.py", "rb")}
     )
     assert response.status_code == 200
 
@@ -37,7 +37,7 @@ def test_files_override_file():
     s3.put_object(Bucket='tdg-s3-bucket', Key="main.py", Body="test")
     
     response = test_app.post(
-        "/api/files", files={"upload_file": open("main.py", "rb")}
+        "/api/1/files", files={"upload_file": open("main.py", "rb")}
     )
     assert response.status_code == 200
 
