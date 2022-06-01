@@ -32,6 +32,17 @@ class FileService {
         })
     }
 
+    async uploadJsonData(payload) {
+        return fetch(config.API_URL + "/3/fill", {
+            headers: {
+                'Accept': 'application/json',
+            },
+            mode: "cors",
+            method: "POST",
+            body: payload
+        })   
+    }
+
 }
 
 export default FileService;
