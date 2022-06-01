@@ -1,11 +1,27 @@
 version: "3"
 services:
-  backend:
+  api1:
     build:
       context: ../StoreService
       dockerfile: ../Docker/Dockerfile.backend
     ports: 
       - 8000:8000
+    depends_on:
+      - frontend
+  api2:
+    build:
+      context: ../RetrieveService
+      dockerfile: ../Docker/Dockerfile.backend
+    ports: 
+      - 8001:8000
+    depends_on:
+      - frontend
+  api3:
+    build:
+      context: ../TemplateFillingService
+      dockerfile: ../Docker/Dockerfile.backend
+    ports: 
+      - 8002:8000
     depends_on:
       - frontend
   frontend:

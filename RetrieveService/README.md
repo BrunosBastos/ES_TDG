@@ -1,15 +1,13 @@
-# Store MicroService
+# Retrieve MicroService
 
-This service allows to store files in S3 bucket
+This service allows to retrive a file from S3 tdg bucket
 
 ## API
 
 ### Endpoints:
 
-POST: /api/1/files - Stores the provided file in the S3 bucket.
+GET: /api/2/files - Returns all the file names and their sizes.
 
-- Args: 
-    - File
 
 ## Local Installation
 
