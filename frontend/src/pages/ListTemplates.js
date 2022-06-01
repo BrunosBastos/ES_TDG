@@ -21,8 +21,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
+import DownloadIcon from '@mui/icons-material/Download';
 // services
 import FileService from 'src/services/FileService';
+//
+import { config } from 'src/consts';
 
 const service = FileService.getInstance();
 
@@ -49,14 +52,14 @@ export default function ListTemplates() {
     const handleUploadJson = (e) => {
         setFile(e.target.files[0]);
         toast.success("Selected file " + e.target.files[0].name);
-    }
+    };
 
     useEffect(() => {
         service.getAllFiles()
             .then(res => res.json())
             .then(res => { setRows(res.data); })
             .catch(_ => setRows([]));
-    }, []);
+    }, [])
 
     /**
      * Takes the size of a file and converts it to the closest magnitude of measurament.
@@ -70,12 +73,12 @@ export default function ListTemplates() {
             return Math.round(size / 100) / 10 + " KB";
         else
             return size + " B";
-    }
+    };
 
     const uploadJsonData = () => {
         if (selected == "" || file == null || filledFilename == "")
             return;
-        
+
         const formData = new FormData();
         formData.set('upload_file', file);
         formData.set('output_filename', filledFilename);
@@ -84,10 +87,9 @@ export default function ListTemplates() {
             .then(res => res.json())
             .then(res => toast.success("Successfully filled the template."))
             .catch(error => toast.error(error));
-        
-        handleClose();
-    }
 
+        handleClose();
+    };
 
     return (
         <>
@@ -108,7 +110,7 @@ export default function ListTemplates() {
                                 variant="standard"
                                 onChange={(e) => setFilledFilename(e.target.value)}
                             />
-                            <div style={{margin: 10}}>
+                            <div style={{ margin: 10 }}>
                                 <Button
                                     variant="outlined"
                                     component="label"
@@ -143,11 +145,10 @@ export default function ListTemplates() {
                                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell style={{ width: "80%" }} align="left">Name</TableCell>
+                                            <TableCell style={{ width: "75%" }} align="left">Name</TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">Size</TableCell>
-                                            <TableCell style={{ width: "5%" }} align="left">
-
-                                            </TableCell>
+                                            <TableCell style={{ width: "5%" }} align="left" />
+                                            <TableCell style={{ width: "5%" }} align="left" />
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -156,13 +157,18 @@ export default function ListTemplates() {
                                                 key={row.Name}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell style={{ width: "80%" }} component="th" scope="row">
+                                                <TableCell style={{ width: "75%" }} component="th" scope="row">
                                                     {row.Name}
                                                 </TableCell>
                                                 <TableCell style={{ width: "15%" }} align="right">{convertSize(row.Size)}</TableCell>
                                                 <TableCell style={{ width: "5%" }} align="left" >
                                                     <Button variant="outlined" onClick={() => { handleClickOpen(row.Name) }}>
                                                         Fill
+                                                    </Button>
+                                                </TableCell>
+                                                <TableCell style={{ width: "5%" }} align="left" >
+                                                    <Button variant="outlined" href={config.API_URL + "/2/files/" + row.Name}>
+                                                        <DownloadIcon />
                                                     </Button>
                                                 </TableCell>
 

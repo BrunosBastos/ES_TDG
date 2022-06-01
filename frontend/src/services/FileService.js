@@ -40,9 +40,8 @@ class FileService {
             mode: "cors",
             method: "POST",
             body: payload
-        })   
+        })
     }
-
 }
 
 export default FileService;
