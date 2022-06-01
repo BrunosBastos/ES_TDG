@@ -32,6 +32,16 @@ class FileService {
         })
     }
 
+    async downloadTemplate(filename) {
+        return fetch(config.API_URL + "/2/files/" + filename, {
+            headers: {
+                'Accept': 'application/json',
+            },
+            mode: "cors",
+            method: "GET",
+        })
+    }
+
 }
 
 export default FileService;
