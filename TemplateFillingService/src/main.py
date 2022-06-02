@@ -123,11 +123,19 @@ def fill_ppt_template(template_name, data, filled_file_name):
         slide_shape =template.slides[i]
         for slide_t in slide_shape.shapes:
             slide_text = slide_t.text_frame
-            data_params = re.findall(r"\{([A-Za-z0-9_]+)\}", slide_text.text)
-            for d in data_params:
-                if d in slide_data.keys():
-                    slide_text.text = slide_text.text.replace(f"{{{d}}}",slide_data[d]) 
-                    print(slide_text.text)
+            for slide_paragraph in slide_text.paragraphs:
+                whole_text = "".join([r.text for r in slide_paragraph.runs])
+                data_params = re.findall(r"\{([A-Za-z0-9_]+)\}", whole_text)
+                for d in data_params:
+                    if d in slide_data.keys():
+                        whole_text = whole_text.replace(f"{{{d}}}",slide_data[d]) 
+                for idx, run in enumerate(slide_paragraph.runs):
+                    if idx == 0:
+                        continue
+                    p = slide_paragraph._p
+                    p.remove(run._r)
+                slide_paragraph.runs[0].text = whole_text
+
         i+=1
 
     template.save(filled_file_name)
