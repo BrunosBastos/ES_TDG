@@ -35,16 +35,16 @@ const service = FileService.getInstance();
 
 export default function ListTemplates() {
     const [rows, setRows] = useState(null);
-    const [selected, setSelected] = useState("");        // contains the name of the selected template
+    const [selected, setSelected] = useState("");        // contains the path of the selected template
     const [file, setFile] = useState(null);
     const [filledFilename, setFilledFilename] = useState("");
     const [open, setOpen] = useState(false);
-    const [sortKey, setSortKey] = useState("Name");
+    const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
 
-    const handleClickOpen = (templateName) => {
-        setSelected(templateName);
+    const handleClickOpen = (templateFormat, templateName) => {
+        setSelected("template/" + templateFormat + "/" + templateName);
         setOpen(true);
     };
 
@@ -81,6 +81,12 @@ export default function ListTemplates() {
             return size + " B";
     };
 
+    /**
+     * The user selectes a json file and a template that needs to be filled with data. 
+     * A HTTP request is made to the backend and the results of the request are displayed to the user
+     * as a toaster.
+     * @returns void 
+     */
     const uploadJsonData = () => {
         if (selected == "" || file == null || filledFilename == "")
             return;
@@ -98,6 +104,14 @@ export default function ListTemplates() {
     };
 
     /**
+     * Takes a string as input and returns the first letter as uppercase
+     * @param {*} str   The string to be capitalize
+     * @returns         The same string but the first letter is not uppercase
+     */
+    const capitalize = (str) => str[0].toUpperCase() + str.slice(1);
+
+
+    /**
      * Returns true if the value is null, undefined or a empty string, and false otherwise.
      * For booleans, always returns false.
      * @param {v}   the value 
@@ -113,7 +127,7 @@ export default function ListTemplates() {
 
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
     const filteredRows = rows && rows
-        .filter((r) => isEmpty(search) || isIncluded(search, r.Name))
+        .filter((r) => isEmpty(search) || isIncluded(search, r.name))
         .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
             : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
 
@@ -145,14 +159,20 @@ export default function ListTemplates() {
                         </h2>
                         :
                         <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }}>
+                            <Table stickyHeader sx={{ minWidth: 650 }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell style={{ width: "75%" }} align="left">
-                                            <HeadCellSort cellKey={'Name'}>Name</HeadCellSort>
+                                        <TableCell style={{ width: "55%" }} align="left">
+                                            <HeadCellSort cellKey={'name'}>Name</HeadCellSort>
+                                        </TableCell>
+                                        <TableCell style={{ width: "10%" }} align="left">
+                                            <HeadCellSort cellKey={'type'}>Type</HeadCellSort>
+                                        </TableCell>
+                                        <TableCell style={{ width: "10%" }} align="left">
+                                            <HeadCellSort cellKey={'format'}>Format</HeadCellSort>
                                         </TableCell>
                                         <TableCell style={{ width: "15%" }} align="right">
-                                            <HeadCellSort cellKey={'Size'} align="right">Size</HeadCellSort>
+                                            <HeadCellSort cellKey={'size'} align="right">Size</HeadCellSort>
                                         </TableCell>
                                         <TableCell style={{ width: "5%" }} align="left" />
                                         <TableCell style={{ width: "5%" }} align="left" />
@@ -161,20 +181,26 @@ export default function ListTemplates() {
                                 <TableBody>
                                     {filteredRows.map((row) => (
                                         <TableRow
-                                            key={row.Name}
+                                            key={row.name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{ width: "75%" }} component="th" scope="row">
-                                                {row.Name}
+                                            <TableCell style={{ width: "55%" }} component="th" scope="row">
+                                                {row.name}
                                             </TableCell>
-                                            <TableCell style={{ width: "15%" }} align="right">{convertSize(row.Size)}</TableCell>
+                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
+                                                {capitalize(row.type)}
+                                            </TableCell>
+                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
+                                                {capitalize(row.format)}
+                                            </TableCell>
+                                            <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" onClick={() => { handleClickOpen(row.Name) }}>
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name) }}>
                                                     Fill
-                                                </Button>
+                                                </Button>}
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" href={config.API_URL + "/2/files/" + row.Name}>
+                                                <Button variant="outlined" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
                                                     <DownloadIcon />
                                                 </Button>
                                             </TableCell>
