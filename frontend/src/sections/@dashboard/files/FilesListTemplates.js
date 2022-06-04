@@ -24,6 +24,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import DownloadIcon from '@mui/icons-material/Download';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+// components
+import Searchbar from 'src/components/Searchbar';
 // services
 import FileService from 'src/services/FileService';
 //
@@ -119,7 +121,10 @@ export default function ListTemplates() {
 
     return (
         <Card>
-            <CardHeader title={"List Files"} subheader={"See your files"} />
+            <CardHeader title={"List Files"} subheader={"See your templates"} />
+            <Box sx={{ p: 3, pb: 1 }}>
+                <Searchbar placeholder='Search template' handleSearch={() => {}} />
+            </Box>
             <Box sx={{ p: 3, pb: 1, minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
                     <CircularProgress />

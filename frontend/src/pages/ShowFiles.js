@@ -1,11 +1,11 @@
 // material
 import { Grid, Container, Typography } from '@mui/material';
 // components
-import Page from '../components/Page';
+import Page from 'src/components/Page';
 // sections
 import {
   FilesListTemplates,
-} from '../sections/@dashboard/files';
+} from 'src/sections/@dashboard/files';
 
 // ----------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ export default function DashboardApp() {
     <Page title="Dashboard">
       <Container maxWidth="xl">
         <Typography variant="h4" sx={{ mb: 5 }}>
-          Hi, Welcome back
+          Show Files
         </Typography>
 
         <Grid container spacing={3}>
@@ -23,6 +23,6 @@ export default function DashboardApp() {
           </Grid>
         </Grid>
       </Container>
-    </Page >
+    </Page>
   );
 }
