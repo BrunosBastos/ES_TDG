@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // material
 import { styled, alpha } from '@mui/material/styles';
 import { Input, Button, InputAdornment } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import ClearIcon from '@mui/icons-material/Clear';
 // component
 import Iconify from 'src/components/Iconify';
 
@@ -18,7 +20,7 @@ const SearchbarStyle = styled('div')(({ theme }) => ({
     backdropFilter: 'blur(6px)',
     WebkitBackdropFilter: 'blur(6px)', // Fix on Mobile
     padding: theme.spacing(0, 1),
-    boxShadow: 'inset 0px 0 20px 5px rgb(145 158 171 / 14%)',
+    boxShadow: 'inset 0px 0 10px 4px rgb(145 158 171 / 14%)',
     borderRadius: 8,
     [theme.breakpoints.up('md')]: {
         height: APPBAR_DESKTOP,
@@ -28,8 +30,12 @@ const SearchbarStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Searchbar({placeholder="Search…", handleSearch}) {
+export default function Searchbar({ placeholder = "Search…", handleSearch }) {
     const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        handleSearch(search);
+    }, [search]);
 
     return (
         <SearchbarStyle>
@@ -47,9 +53,12 @@ export default function Searchbar({placeholder="Search…", handleSearch}) {
                 }
                 sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
             />
-            <Button variant="contained" onClick={handleSearch}>
+            {/* <Button variant="contained">
                 Search
-            </Button>
+            </Button> */}
+            {search && <IconButton aria-label="clear search" onClick={() => setSearch("")}>
+                <ClearIcon />
+            </IconButton>}
         </SearchbarStyle>
     );
 }

@@ -41,6 +41,7 @@ export default function ListTemplates() {
     const [open, setOpen] = useState(false);
     const [sortKey, setSortKey] = useState("Name");
     const [sortOrder, setSortOrder] = useState(true);
+    const [search, setSearch] = useState("");
 
     const handleClickOpen = (templateName) => {
         setSelected(templateName);
@@ -99,13 +100,22 @@ export default function ListTemplates() {
     /**
      * Returns true if the value is null, undefined or a empty string, and false otherwise.
      * For booleans, always returns false.
-     * @param {v} the value 
+     * @param {v}   the value 
      */
     const isEmpty = (v) => typeof v !== "boolean" && !!!v;
 
+    /**
+     * Returns true if `substr` is included inside `str`. This method is case insensitive.
+     * @param {substr}  the substring that we is seeked inside `str`
+     * @param {str}     the string 
+     */
+    const isIncluded = (substr, str) => str.toLowerCase().includes(substr.toLowerCase());
+
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
-    const sortedRows = rows && rows.sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
-        : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
+    const filteredRows = rows && rows
+        .filter((r) => isEmpty(search) || isIncluded(search, r.Name))
+        .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
+            : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
 
     const HeadCellSort = ({ align, cellKey, children }) => (
         <div style={{ display: 'flex', justifyContent: align, cursor: 'pointer', userSelect: 'none' }} onClick={() => {
@@ -117,20 +127,22 @@ export default function ListTemplates() {
                 {sortKey === cellKey && (sortOrder ? <KeyboardArrowDownIcon /> : <KeyboardArrowUpIcon />)}
             </span>
         </div>
-    )
+    );
 
     return (
         <Card>
             <CardHeader title={"List Files"} subheader={"See your templates"} />
             <Box sx={{ p: 3, pb: 1 }}>
-                <Searchbar placeholder='Search template' handleSearch={() => {}} />
+                <Searchbar placeholder='Search template...' handleSearch={setSearch} />
             </Box>
-            <Box sx={{ p: 3, pb: 1, minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} dir="ltr">
+            <Box sx={{ p: 3, pb: 1, minHeight: 250, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
                     <CircularProgress />
                     :
-                    rows?.length === 0 ?
-                        <h2 style={{ color: "#637381" }}>Your files storage is empty.</h2>
+                    filteredRows?.length === 0 ?
+                        <h2 style={{ color: "#637381", alignSelf: "center" }}>
+                            {rows?.length === 0 ? "Your files storage is empty." : "No results found."}
+                        </h2>
                         :
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }}>
@@ -147,7 +159,7 @@ export default function ListTemplates() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {sortedRows.map((row) => (
+                                    {filteredRows.map((row) => (
                                         <TableRow
                                             key={row.Name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
