@@ -50,7 +50,7 @@ def test_files_correct_upload_directory(tmpdir):
         conn.create_bucket(Bucket='tdg-s3-bucket')
 
         s3 = boto3.client('s3')
-        prefix = "templates/" + format
+        prefix = "template/" + format
         path = prefix + "/" + filename + "." + extension
 
         response_obj = s3.list_objects_v2(Bucket='tdg-s3-bucket', Prefix=prefix)
@@ -86,7 +86,7 @@ def test_files_override_file(tmpdir):
         conn.create_bucket(Bucket='tdg-s3-bucket')
 
         s3 = boto3.client('s3')
-        path = "templates/" + format + "/" + filename + "." + extension
+        path = "template/" + format + "/" + filename + "." + extension
         s3.put_object(Bucket='tdg-s3-bucket', Key=path, Body="test")
 
         with open(doc, "rb") as file:

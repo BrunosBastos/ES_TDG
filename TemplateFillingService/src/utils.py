@@ -43,3 +43,30 @@ def create_response(status_code=200, message="", data=[]) -> JSONResponse:
         },
         headers={"Access-Control-Allow-Origin": "*"}
     )
+
+
+def get_file_extension(filename, format) -> str:
+    """
+    Validates the extension of a given file and obtains the extension.
+
+    Parameters
+    ----------
+        filename : `str`
+            The name of the file
+
+    Returns
+    -------
+        file_extension: `str`
+            The extension of the file
+    """
+    accepted_file_formats = {
+        "excel": ["xlsx"],
+        "word": ["docx"],
+        "powerpoint": ["ppt", "pptx"]
+    }
+
+    # checks for the file format (word/excel/powerpoint) and the corresponding file extension
+    for extension in accepted_file_formats[format]:
+        if filename.endswith(extension):
+            return extension
+    return None

@@ -1,3 +1,4 @@
+from typing import Tuple
 import boto3
 from fastapi.responses import JSONResponse
 
@@ -43,3 +44,33 @@ def create_response(status_code=200, message="", data=[]) -> JSONResponse:
         },
         headers={"Access-Control-Allow-Origin": "*"}
     )
+
+
+def get_file_format_extension(filename) -> Tuple[str, str]:
+    """
+    Validates the extension of a given file and obtains the extension and the format.
+
+    Parameters
+    ----------
+        filename : `str`
+            The name of the file
+
+    Returns
+    -------
+        file_format : `str`
+            The correspondent file format of that file
+        file_extension: `str`
+            The extension of the file
+    """
+    accepted_file_formats = {
+        "excel": ["xlsx"],
+        "word": ["docx"],
+        "powerpoint": ["ppt", "pptx"]
+    }
+
+    # checks for the file format (word/excel/powerpoint) and the corresponding file extension
+    for format, extensions in accepted_file_formats.items():
+        for extension in extensions:
+            if filename.endswith(extension):
+                return format, extension
+    return None, None

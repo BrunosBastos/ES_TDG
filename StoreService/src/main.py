@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, File, Depends, Form
 from fastapi.responses import JSONResponse
 from botocore.exceptions import ClientError
 
-from utils import create_response, get_client_s3
+from utils import create_response, get_client_s3, get_file_format_extension
 
 # Logger
 logging.basicConfig(
@@ -13,12 +13,6 @@ logging.basicConfig(
 
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
-
-accepted_file_formats = {
-    "excel": ["xlsx"],
-    "word": ["docx"],
-    "powerpoint": ["ppt", "pptx"]
-}
 
 
 @app.post("/api/1/files")
@@ -47,14 +41,8 @@ async def post_template(
     """
 
     try:
-        # checks for the file format (word/excel/powerpoint) and the corresponding file extension
-        file_format = None
-        file_extension = None
-        for format, extensions in accepted_file_formats.items():
-            for extension in extensions:
-                if upload_file.filename.endswith(extension):
-                    file_format = format
-                    file_extension = extension
+        # checks for the extension of the file
+        file_format, file_extension = get_file_format_extension(upload_file.filename)
 
         # file extension is not supported
         if not file_format or not file_extension:
@@ -65,7 +53,7 @@ async def post_template(
             filename += "." + file_extension
 
         # saves in the templates directory with the file format correct
-        path = "templates/" + file_format + "/" + filename
+        path = "template/" + file_format + "/" + filename
 
         s3.upload_fileobj(upload_file.file, bucket_name, path)
     except ClientError as e:
