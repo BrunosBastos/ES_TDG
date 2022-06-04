@@ -195,9 +195,9 @@ export default function ListTemplates() {
                                             </TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type == "template" ? <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name) }}>
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name) }}>
                                                     Fill
-                                                </Button> : <></>}
+                                                </Button>}
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
                                                 <Button variant="outlined" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>

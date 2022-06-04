@@ -69,4 +69,3 @@ def get_file_extension(filename, format) -> str:
     for extension in accepted_file_formats[format]:
         if filename.endswith(extension):
             return extension
-    return None
