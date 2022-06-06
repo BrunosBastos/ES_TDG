@@ -4,4 +4,4 @@ boto3
 pytest
 moto
 openpyxl
-pptx
+python-pptx

@@ -12,7 +12,7 @@ import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
-import ListTemplates from './pages/ListTemplates';
+import ShowFiles from './pages/ShowFiles';
 
 
 // ----------------------------------------------------------------------
@@ -28,7 +28,7 @@ export default function Router() {
       element: <DashboardLayout />,
       children: [
         { path: 'app', element: <DashboardApp /> },
-        { path: 'files', element: <ListTemplates />},
+        { path: 'files', element: <ShowFiles />},
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
