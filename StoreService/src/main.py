@@ -61,3 +61,36 @@ async def post_template(
         return create_response(status_code=400, message=str(e))
 
     return create_response(status_code=200, message="Success storing file: " + filename)
+
+
+@app.post("/api/1/delete")
+async def post_template(
+    filepath: str = Form(),
+    s3=Depends(get_client_s3)
+) -> JSONResponse:
+    """
+    Endpoint ``/delete`` that accepts the method POST. Receives a filepath and
+    deletes it from the bucket in AWS S3. 
+
+    Parameters
+    ----------
+        filename: `str`
+            The name identifier of the file in the storage
+
+    Returns
+    -------
+        response : `JSONResponse`
+            Json response with the status code and data containing the message
+            and data.
+    """
+
+    try:
+        # deletes the file
+        s3.delete_object(Bucket=bucket_name, Key=filepath)
+
+    except ClientError as e:
+        logging.debug(e)
+        return create_response(status_code=400, message=str(e))
+
+    return create_response(status_code=200, message="Success deleting file: " + filepath)
+
