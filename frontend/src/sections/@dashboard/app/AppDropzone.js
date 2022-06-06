@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-
-import { Card, CardHeader, Box, Button } from '@mui/material';
-
+import { toast } from 'react-toastify';
+// material
+import { Card, CardHeader, Box, TextField } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+// services
 import FileService from '../../../services/FileService';
 
 const service = FileService.getInstance();
@@ -46,37 +48,46 @@ const acceptedPowerPointExt = ['pot', 'potm', 'potx', 'ppa', 'ppam', 'pps', 'pps
 
 
 function fileValidator(file) {
-    console.log(file)
     const ext = file.name.split('.').pop();
+    let message;
     if (![...acceptedWordExt, ...acceptedExcelExt, ...acceptedPowerPointExt].includes(ext)) {
+        message = `The file extension .${ext} is not allowed`;
+        toast.error(message);
         return {
             code: "wrong-extension",
-            message: `File extension not accepted`
+            message
         };
     }
     if (file.size > maxSize) {
+        message = `The file size cannot be larger than ${maxSize / 1000000} MB`;
+        toast.error(message);
         return {
             code: "too-large",
-            message: `File size is larger than ${maxSize / 1000000} Mb`
+            message
         };
     }
-
     return null;
 }
 
 export default function Dropzone({ title, subheader, other }) {
-    const [response, setResponse] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [files, setFiles] = useState([]);
+    const [filename, setFilename] = useState("");
+
+    const onDrop = useCallback(acceptedFiles => {
+        setFiles([...files, ...acceptedFiles])
+    }, [files])
 
     const {
-        acceptedFiles,
-        fileRejections,
         isFocused,
         isDragAccept,
         isDragReject,
         getRootProps,
         getInputProps,
     } = useDropzone({
-        validator: fileValidator
+        validator: fileValidator,
+        onDrop,
+        disabled: loading,
     });
 
     const style = useMemo(() => ({
@@ -90,35 +101,33 @@ export default function Dropzone({ title, subheader, other }) {
         isDragReject
     ]);
 
-    const acceptedFileItems = acceptedFiles.map(file => (
-        <li key={file.path}>
-            {file.path} - {file.size} bytes
-        </li>
-    ));
+    const handleResponse = (success, message) => {
+        if (success)
+            toast.success(message);
+        else
+            toast.error(message);
+        setLoading(false);
+        setFiles([]);
+    }
 
-    const fileRejectionItems = fileRejections.map(({ file, errors }) => (
-        <li key={file.path}>
-            {file.path} - {file.size} bytes
-            <ul>
-                {errors.map(e => (
-                    <li key={e.code}>{e.message}</li>
-                ))}
-            </ul>
-        </li>
-    ));
+    const submissionIsValid = () => {
+        return files.length === 1;
+    }
 
     const onSubmit = () => {
-        if (acceptedFiles.length == 0) {
+        if (!submissionIsValid() || filename == "") {
             return;
         }
+        setLoading(true);
 
         const formData = new FormData();
-        formData.set('upload_file', acceptedFiles[0]);
+        formData.set('upload_file', files[0]);
+        formData.set('filename', filename);
 
         service.uploadFile(formData)
             .then(res => res.json())
-            .then(res => setResponse(res.message))
-            .catch(_ => setResponse("Error uploading file"))
+            .then(res => handleResponse(true, res?.message))
+            .catch(_ => handleResponse(false, "An error occurred on the file submission"));
     }
 
     return (
@@ -127,25 +136,31 @@ export default function Dropzone({ title, subheader, other }) {
 
             <Box sx={{ p: 3, pb: 1 }} dir="ltr">
                 <section className="container">
+                    <div style={{marginBottom: 20}}>
+                        <TextField id="filename_input" label="Template name" variant="outlined" onChange={(e) => setFilename(e.target.value)}/>
+                    </div>
                     <div {...getRootProps({ style })}>
                         <input {...getInputProps()} />
                         <p>Drag 'n' drop some files here, or click to select files</p>
                         <em>(Only DOC, CSV, PPT files and similar extensions will be accepted)</em>
                     </div>
+                    <br />
                     <aside>
-                        <h4>Accepted files</h4>
-                        <ul>{acceptedFileItems}</ul>
-                        <h4>Rejected files</h4>
-                        <ul>{fileRejectionItems}</ul>
+                        {files?.map(file => (
+                            <div key={file.path}>
+                                {file.path} - {file.size} bytes
+                            </div>
+                        ))}
                     </aside>
-                    <Button onClick={onSubmit} variant="contained" disabled={acceptedFiles.length === 0}>
+                    <br />
+                    <LoadingButton variant="contained"
+                        onClick={onSubmit}
+                        disabled={loading || !submissionIsValid()}
+                        loading={loading}>
                         Upload
-                    </Button>
-                    {response}
+                    </LoadingButton>
                 </section>
-
             </Box>
-
         </Card>
     );
 }

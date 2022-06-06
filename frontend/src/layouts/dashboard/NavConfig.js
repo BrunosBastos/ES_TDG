@@ -16,8 +16,9 @@ const navConfig = [
     title: 'show files',
     path: '/dashboard/files',
     icon: getIcon('eva:shopping-bag-fill'),
-  },
-  config.SHOW_TEMPLATE && {...[{
+  }
+].concat(!config.SHOW_TEMPLATE ? [] : [
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),
@@ -46,7 +47,7 @@ const navConfig = [
     title: 'Not found',
     path: '/404',
     icon: getIcon('eva:alert-triangle-fill'),
-  }]},
-].filter(n => n);
+  }],
+);
 
 export default navConfig;
