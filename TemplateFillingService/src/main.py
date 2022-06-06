@@ -99,23 +99,23 @@ def fill_template(template_name, data, filled_file_name):
 
     template.save(filled_file_name)
 
-#
-# def fill_simple_docx_template(template_name, data, filled_file_name):
-#     # open file
-#     document = docx.Document(template_name)
-#
-#     # paragraph input
-#     page = 1                                    # page counter
-#     regex = re.compile("\$\{([a-zA-Z0-9]+)\}")  # regex for identifying fillable stuff
-#     for paragraph in document.paragraphs:
-#         while x := re.search(regex, paragraph.text):
-#             replace = x.string.split(" ")[-1]
-#             strip = replace[2:-1]
-#             if strip in data[0]:
-#                 paragraph.text = paragraph.text.replace(replace, data[page - 1][strip])
-#         for run in paragraph.runs:
-#             if ('lastRenderedPageBreak' in run._element.xml) or ('w:br' in run._element.xml and 'type="page"' in run._element.xml):
-#                 page += 1
+
+def fill_simple_docx_template(template_name, data, filled_file_name):
+    # open file
+    document = docx.Document(template_name)
+
+    # paragraph input
+    page = 1                                    # page counter
+    regex = re.compile("\$\{([a-zA-Z0-9]+)}")  # regex for identifying fillable stuff
+    for paragraph in document.paragraphs:
+        while x := re.search(regex, paragraph.text):
+            replace = x.string.split(" ")[-1]
+            strip = replace[2:-1]
+            if strip in data[0]:
+                paragraph.text = paragraph.text.replace(replace, data[page - 1][strip])
+        for run in paragraph.runs:
+            if ('lastRenderedPageBreak' in run._element.xml) or ('w:br' in run._element.xml and 'type="page"' in run._element.xml):
+                page += 1
 #
 #     document.save("../Templates/" + filled_file_name)
 #
@@ -243,10 +243,16 @@ def fill_html_docx_template(template_name, data, filled_file_name):
     document = docx.Document(template_name)
 
     # regex
-    regex = re.compile("\{\w+}*")
+    value_regex = re.compile("\$\{\w+}*")
+    start_object_regex = re.compile("\$\{#\w+}*")
+    end_object_regex = re.compile("\$\{\w+#}*")
+    object_value_regex = re.compile("\$\{\.\w+}*")
 
     # iterate through paragraphs in document
     for paragraph in document.paragraphs:
+
+        if replace:= re.search(value_regex, paragraph.text):
+            paragraph.text = paragraph.text.replace(replace.string, data[replace.text])
 
         # if regex found element to substitute
         replace = re.search(regex, paragraph.text)
@@ -260,10 +266,78 @@ def fill_html_docx_template(template_name, data, filled_file_name):
     document.save("../Templates/2_template_HTML/" + filled_file_name)
 
 
+def fill_docx_template(file_path, data, output_path):
+    # open file
+    document = docx.Document(file_path)
+
+    # regex
+    value_regex = re.compile("\$\{\w+}*")
+    begin_list_regex = re.compile("\$\{#\w+}*")
+    end_list_regex = re.compile("\$\{\w+#}*")
+    list_value_regex = re.compile("\$\{\.\w+}*")
+
+    # iterate through paragraphs in document
+    in_list = False
+    in_list_index = 0
+    in_object_name = None
+
+    for paragraph in document.paragraphs:
+
+        # it's not inside a list
+        if not in_list:
+            if x := re.search(value_regex, paragraph.text):
+                replace = x.group(0)[2:-1]
+
+                # it's just a string
+                if isinstance(data[replace], str):
+                    paragraph.text = paragraph.text.replace(x.group(0), data[replace])
+
+                # it's an object
+                elif isinstance(data[replace], dict):
+
+                    # if type isn't html
+                    if data[replace]["type"] != "html":
+                        paragraph.text = paragraph.text.replace(x.group(0), data[replace]["value"])
+
+                    # if type is html
+                    else:
+                        html = BeautifulSoup(data[replace]["value"], "html.parser")
+                        paragraph.text = paragraph.text.replace(x.group(0), html.prettify())
+
+        # it's inside a list
+        # lists only have values inside it
+        if in_list:
+            if x := re.search(list_value_regex, paragraph.text):
+                replace = x.group(0)[3:-1]
+                paragraph.text = paragraph.text.replace(x.group(0), data[in_object_name][in_list_index][replace])
+
+        # find's the beginning of a list
+        if x := re.search(begin_list_regex, paragraph.text):
+            in_object_name = x.string[3:-1]
+            in_list = True
+            paragraph.text = paragraph.text.replace(x.group(0), " ")
+
+        # find's the end of a list
+        if x := re.search(end_list_regex, paragraph.text):
+            in_object_name = None
+            in_list = False
+            in_list_index += 1
+            paragraph.text = paragraph.text.replace(x.group(0), " ")
+
+    # TODO: do table stuff
+    for table in document.tables:
+        continue
+
+    document.save(output_path)
+
+
 if __name__ == "__main__":
     print(os.path.dirname(os.path.realpath(__file__)))
 
-    f = open("../Templates/2_template_HTML/input_htmlWord-Data.json")
-    data = json.load(f)
+    data = json.load(open("../Templates/input/final.json"))
 
-    fill_html_docx_template("../Templates/2_template_HTML/input_htmlWord-template.docx", data, "docx_html_test.docx")
+    file_path = "../Templates/input/3-2.docx"
+
+    output_path = "../Templates/output/final.docx"
+
+    fill_docx_template(file_path, data, output_path)
