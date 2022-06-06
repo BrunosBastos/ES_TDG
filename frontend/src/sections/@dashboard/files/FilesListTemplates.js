@@ -39,13 +39,17 @@ export default function ListTemplates() {
     const [file, setFile] = useState(null);
     const [filledFilename, setFilledFilename] = useState("");
     const [open, setOpen] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
     const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
 
-    const handleClickOpen = (templateFormat, templateName) => {
+    const handleClickOpen = (templateFormat, templateName, fill) => {
         setSelected("template/" + templateFormat + "/" + templateName);
-        setOpen(true);
+        if (fill)
+            setOpen(true);
+        else
+            setOpenDelete(true);
     };
 
     const handleClose = () => {
@@ -53,6 +57,7 @@ export default function ListTemplates() {
         setFile(null);
         setFilledFilename("");
         setOpen(false);
+        setOpenDelete(false);
     };
 
     const handleUploadJson = (e) => {
@@ -82,7 +87,7 @@ export default function ListTemplates() {
     };
 
     /**
-     * The user selectes a json file and a template that needs to be filled with data. 
+     * The user selects a json file and a template that needs to be filled with data. 
      * A HTTP request is made to the backend and the results of the request are displayed to the user
      * as a toaster.
      * @returns void 
@@ -98,6 +103,25 @@ export default function ListTemplates() {
         service.uploadJsonData(formData)
             .then(res => res.json())
             .then(res => toast.success("Successfully filled the template."))
+            .catch(error => toast.error(error));
+
+        handleClose();
+    };
+
+    /**
+     * The user confirms the deletion of a file.
+     * A HTTP request is made to the backend and the results of the request are displayed to the user
+     * as a toaster.
+     * @returns void 
+     */
+     const deleteFile = () => {
+        if (selected == "")
+            return;
+
+        const formData = new FormData();
+        formData.set('filepath', selected);
+        service.deleteFile(formData)
+            .then(res => res.json())
             .catch(error => toast.error(error));
 
         handleClose();
@@ -184,7 +208,7 @@ export default function ListTemplates() {
                                             key={row.name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{ width: "55%" }} component="th" scope="row">
+                                            <TableCell style={{ width: "50%" }} component="th" scope="row">
                                                 {row.name}
                                             </TableCell>
                                             <TableCell style={{ width: "10%" }} component="th" scope="row">
@@ -195,7 +219,7 @@ export default function ListTemplates() {
                                             </TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name) }}>
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, true) }}>
                                                     Fill
                                                 </Button>}
                                             </TableCell>
@@ -203,6 +227,11 @@ export default function ListTemplates() {
                                                 <Button variant="outlined" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
                                                     <DownloadIcon />
                                                 </Button>
+                                            </TableCell>
+                                            <TableCell style={{ width: "5%" }} align="left" >
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, false) }}>
+                                                    <TbTrash />
+                                                </Button>}
                                             </TableCell>
 
                                         </TableRow>
@@ -247,6 +276,20 @@ export default function ListTemplates() {
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
                     <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
+                </DialogActions>
+            </Dialog>
+
+
+            <Dialog open={openDelete} onClose={handleClose}>
+                <DialogTitle>Delete File</DialogTitle>
+                <DialogContent style={{ textAlign: "center" }}>
+                    <DialogContentText>
+                        Are you sure you want to delete this file?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button color="primary" variant="contained" onClick={deleteFile}>Delete</Button>
                 </DialogActions>
             </Dialog>
         </Card>
