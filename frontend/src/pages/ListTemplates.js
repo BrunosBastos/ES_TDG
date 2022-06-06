@@ -23,6 +23,14 @@ export default function ListTemplates() {
 
     }, []);
 
+    const requestSort = event => {
+        const sortDir = direction === 'descending' ? 'ascending' : 'descending'
+        setDirection(sortDir)
+        setSortBy(event.target.id)
+        const sortConfig = { sortBy: event.target.id, direction: sortDir }
+        setSortedItems(sortTableData(things, sortConfig))
+    }
+
 
     return (
         <Card>
@@ -33,8 +41,24 @@ export default function ListTemplates() {
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell style={{width: "80%"}} align="left">Name</TableCell>
-                                    <TableCell style={{width: "15%"}} align="right">Size</TableCell>
+                                    <TableCell style={{width: "80%"}} align="left">
+                                    <button
+                                        type="button"
+                                        onClick={() => requestSort('name')}
+                                        className={getClassNamesFor('name')}
+                                    >
+                                        Name
+                                    </button>
+                                    </TableCell>
+                                    <TableCell style={{width: "15%"}} align="right">
+                                    <button
+                                        type="button"
+                                        onClick={() => requestSort('size')}
+                                        className={getClassNamesFor('size')}
+                                    >
+                                        Size
+                                    </button>
+                                    </TableCell>
                                     <TableCell style={{width: "5%"}} align="left"></TableCell>
                                 </TableRow>
                             </TableHead>
