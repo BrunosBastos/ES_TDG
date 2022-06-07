@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+
 // material
 import {
     Card,
@@ -11,7 +12,12 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle
+    DialogTitle,
+    Grid,
+    FormControl,
+    MenuItem,
+    InputLabel,
+    
 } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -24,6 +30,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import DownloadIcon from '@mui/icons-material/Download';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+
+
 // components
 import Searchbar from 'src/components/Searchbar';
 // services
@@ -42,6 +51,7 @@ export default function ListTemplates() {
     const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
+    const [fileExtension, setfileExtension] = useState("");
 
     const handleClickOpen = (templateFormat, templateName) => {
         setSelected("template/" + templateFormat + "/" + templateName);
@@ -66,6 +76,8 @@ export default function ListTemplates() {
             .then(res => { setRows(res.data); })
             .catch(_ => setRows([]));
     }, [])
+
+    const rows_for_filter = rows;
 
     /**
      * Takes the size of a file and converts it to the closest magnitude of measurament.
@@ -126,7 +138,7 @@ export default function ListTemplates() {
     const isIncluded = (substr, str) => str.toLowerCase().includes(substr.toLowerCase());
 
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
-    const filteredRows = rows && rows
+    const filteredRows = rows_for_filter && rows_for_filter
         .filter((r) => isEmpty(search) || isIncluded(search, r.name))
         .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
             : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
@@ -143,9 +155,39 @@ export default function ListTemplates() {
         </div>
     );
 
+    const [type, setType] = React.useState('');
+
+    const handleChange = (event: SelectChangeEvent) => {
+        setType(event.target.value);
+        
+        rows_for_filter = rows && rows
+        .filter(row => row.type === type);
+    };
+
     return (
         <Card>
-            <CardHeader title={"List Files"} subheader={"See your templates"} />
+            <Grid container spacing={4} >
+                <Grid item xs={10} >
+                    <CardHeader title={"List Files"} subheader={"See your templates"} />        
+                </Grid>
+                <Grid item xs={2} style={{justifyContent: 'center'}}>
+                    <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">File Extension</InputLabel>
+                        <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={type}
+                        label="Type"
+                        onChange={handleChange}
+                        >
+                        <MenuItem value='xlsx'>Excel</MenuItem>
+                        <MenuItem value='pptx'>Power Point</MenuItem>
+                        <MenuItem value='docx'>Word</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+            </Grid>
+
             <Box sx={{ p: 3, pb: 1 }}>
                 <Searchbar placeholder='Search template...' handleSearch={setSearch} />
             </Box>
