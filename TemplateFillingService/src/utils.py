@@ -2,6 +2,7 @@ import boto3
 from fastapi.responses import JSONResponse
 import copy
 
+
 def get_client_s3() -> boto3.client:
     """
     Creates a boto3 client. This function can be used as dependency injection
@@ -70,6 +71,7 @@ def get_file_extension(filename, format) -> str:
         if filename.endswith(extension):
             return extension
 
+
 def _get_blank_slide_layout(pres):
     """
     Aux function for duplicating slide 
@@ -87,7 +89,9 @@ def _get_blank_slide_layout(pres):
     layout_items_count = [len(layout.placeholders) for layout in pres.slide_layouts]
     min_items = min(layout_items_count)
     blank_layout_id = layout_items_count.index(min_items)
+    
     return pres.slide_layouts[blank_layout_id]
+
 
 def duplicate_slide(pres, index):
     """
@@ -114,6 +118,5 @@ def duplicate_slide(pres, index):
         el = shp.element
         newel = copy.deepcopy(el)
         dest.shapes._spTree.insert_element_before(newel, 'p:extLst')
-
 
     return dest

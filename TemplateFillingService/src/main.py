@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from pptx import Presentation
 from botocore.exceptions import ClientError
 import logging
-import boto3
 import re
 import json
 import openpyxl as oxl
@@ -58,7 +57,7 @@ async def post_template(
         s3.download_file(
             bucket_name, retrieval_filename, t_filename
         )
-        
+    
         file_extension = get_file_extension(t_filename, t_format)
 
         if not output_filename.endswith(file_extension):
@@ -69,7 +68,7 @@ async def post_template(
             fill_excel_template(t_filename, data, output_filename)
         
         # fill pptx template
-        elif file_extension ==  "pptx" or file_extension == "ppt":
+        elif file_extension == "pptx" or file_extension == "ppt":
             fill_ppt_template(t_filename, data, output_filename)
 
         # fill pptx template
@@ -77,7 +76,6 @@ async def post_template(
             fill_word_template(t_filename, data, output_filename)
 
         path = "filled/" + t_format + "/" + output_filename
-
 
         s3.upload_fileobj(
             open(output_filename, "rb"), bucket_name, path
@@ -88,6 +86,7 @@ async def post_template(
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=e)
+
 
 def fill_excel_template(template_name, data, filled_file_name):
     """
@@ -101,7 +100,6 @@ def fill_excel_template(template_name, data, filled_file_name):
             The JSON data to be used in filling
         filled_file_name : `str`
             The name of the resulting file 
-
     """ 
 
     # load template
@@ -141,18 +139,17 @@ def fill_ppt_template(template_name, data, filled_file_name):
             The JSON data to be used in filling
         filled_file_name : `str`
             The name of the resulting file 
-
     """ 
 
     # load template
     template = Presentation(template_name)
 
-    [duplicate_slide(template,0) for _ in range(1, len(data["records"]))]
+    [duplicate_slide(template, 0) for _ in range(1, len(data["records"]))]
 
     i=0
     # go through data
     for slide_data in data["records"]:
-        slide_shape =template.slides[i]
+        slide_shape = template.slides[i]
         for slide_t in slide_shape.shapes:
             slide_text = slide_t.text_frame
             for slide_paragraph in slide_text.paragraphs:
@@ -160,7 +157,7 @@ def fill_ppt_template(template_name, data, filled_file_name):
                 data_params = re.findall(r"\{([A-Za-z0-9_]+)\}", whole_text)
                 for d in data_params:
                     if d in slide_data.keys():
-                        whole_text = whole_text.replace(f"{{{d}}}",slide_data[d]) 
+                        whole_text = whole_text.replace(f"{{{d}}}", slide_data[d]) 
                 for idx, run in enumerate(slide_paragraph.runs):
                     if idx == 0:
                         continue
@@ -189,6 +186,3 @@ def fill_word_template(template_name, data, filled_file_name):
 
     """ 
     return
-
-
-

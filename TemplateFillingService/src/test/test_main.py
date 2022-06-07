@@ -1,5 +1,3 @@
-from distutils import extension
-from fileinput import filename
 from fastapi.testclient import TestClient
 import boto3
 from moto import mock_s3
@@ -32,15 +30,16 @@ def test_fill_excel_file():
 
     s3.put_object(Bucket='tdg-s3-bucket', Key=path, Body=open(test_path + "input_standardExcel-Template.xlsx", "rb"))
 
-
     response = test_app.post(
-        "/api/3/fill", files={"upload_file": open(test_path + "input_standardExcel-Data.json", "rb")}, data={"retrieval_filename": path, "output_filename": output_filename }
+        "/api/3/fill", files={"upload_file": open(test_path + "input_standardExcel-Data.json", "rb")}, 
+        data={"retrieval_filename": path, "output_filename": output_filename}
     )
 
     assert response.status_code == 200
     
     # filled file was created and saved in the correct folder
     assert s3.get_object(Bucket='tdg-s3-bucket', Key=path_filled)
+
 
 @mock_s3
 def test_fill_powerpoint_file():
@@ -66,13 +65,12 @@ def test_fill_powerpoint_file():
 
     s3.put_object(Bucket='tdg-s3-bucket', Key=path, Body=open(test_path + "input_UserData-Template.pptx", "rb"))
 
-
     response = test_app.post(
-        "/api/3/fill", files={"upload_file": open(test_path + "input_UserData_DataSubset.json", "rb")}, data={"retrieval_filename": path, "output_filename": output_filename }
+        "/api/3/fill", files={"upload_file": open(test_path + "input_UserData_DataSubset.json", "rb")}, 
+        data={"retrieval_filename": path, "output_filename": output_filename }
     )
 
     assert response.status_code == 200
     
     # filled file was created and saved in the correct folder
     assert s3.get_object(Bucket='tdg-s3-bucket', Key=path_filled)
-
