@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 // material
@@ -73,9 +73,17 @@ export default function Dropzone({ title, subheader, other }) {
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
     const [filename, setFilename] = useState("");
+    const filenameRef = useRef();
+    const filesRef = useRef();
+    filenameRef.current = filename;
+    filesRef.current = files;
 
     const onDrop = useCallback(acceptedFiles => {
-        setFiles([...files, ...acceptedFiles])
+        const lastFilename = filesRef.current?.[0]?.name;
+        setFiles([...acceptedFiles]);
+        if (filenameRef.current === "" || lastFilename === filenameRef.current) {
+            setFilename(acceptedFiles[0].name);
+        }
     }, [files])
 
     const {
@@ -137,7 +145,7 @@ export default function Dropzone({ title, subheader, other }) {
             <Box sx={{ p: 3, pb: 1 }} dir="ltr">
                 <section className="container">
                     <div style={{marginBottom: 20}}>
-                        <TextField id="filename_input" label="Template name" variant="outlined" onChange={(e) => setFilename(e.target.value)}/>
+                        <TextField id="filename_input" label="Template name" value={filename} variant="outlined" onChange={(e) => setFilename(e.target.value)}/>
                     </div>
                     <div {...getRootProps({ style })}>
                         <input {...getInputProps()} />
