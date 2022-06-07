@@ -1,5 +1,6 @@
 import boto3
 from fastapi.responses import JSONResponse
+import copy
 
 
 def get_client_s3() -> boto3.client:
@@ -69,3 +70,53 @@ def get_file_extension(filename, format) -> str:
     for extension in accepted_file_formats[format]:
         if filename.endswith(extension):
             return extension
+
+
+def _get_blank_slide_layout(pres):
+    """
+    Aux function for duplicating slide
+    Gets the blank layout of a presentation
+    Parameters
+    ----------
+        pres : pptx.Presentation
+            The presentation to be copied
+
+    Returns
+    -------
+        SlideLayout
+            The presentation blank layout
+    """
+    layout_items_count = [len(layout.placeholders) for layout in pres.slide_layouts]
+    min_items = min(layout_items_count)
+    blank_layout_id = layout_items_count.index(min_items)
+
+    return pres.slide_layouts[blank_layout_id]
+
+
+def duplicate_slide(pres, index):
+    """
+    Duplicate the slide with the given index in pres.
+    Adds slide to the end of the presentation
+    Parameters
+    ----------
+        pres : pptx.Presentation
+            The presentation to be copied
+        index : int
+            The index of the slide to be duplicated
+    Returns
+    -------
+        dest : pptx.Presentation
+            The new presentation with the duplicated slide
+    """
+    """"""
+    source = pres.slides[index]
+
+    blank_slide_layout = _get_blank_slide_layout(pres)
+    dest = pres.slides.add_slide(blank_slide_layout)
+
+    for shp in source.shapes:
+        el = shp.element
+        newel = copy.deepcopy(el)
+        dest.shapes._spTree.insert_element_before(newel, 'p:extLst')
+
+    return dest
