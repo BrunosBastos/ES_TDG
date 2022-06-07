@@ -324,9 +324,17 @@ def fill_docx_template(file_path, data, output_path):
             in_list_index += 1
             paragraph.text = paragraph.text.replace(x.group(0), " ")
 
-    # TODO: do table stuff
+    # iterate through tables in document
+    # find json table to iterate
+    table_name = None
     for table in document.tables:
-        continue
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    if x := re.search(begin_list_regex, paragraph.text):
+                        table_name = x.group(0)
+                        print(table_name)
+                        break
 
     document.save(output_path)
 
