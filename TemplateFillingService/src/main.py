@@ -207,16 +207,46 @@ def fill_docx_template(file_path, data, output_path):
             paragraph.text = paragraph.text.replace(x.group(0), " ")
 
     # iterate through tables in document
-    # find json table to iterate
-    table_name = None
-    for table in document.tables:
+    # find json table names to iterate through
+    table_names = []
+    for idx, table in enumerate(document.tables):
         for row in table.rows:
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
                     if x := re.search(begin_list_regex, paragraph.text):
-                        table_name = x.group(0)
-                        print(table_name)
-                        break
+                        table_names.append(x.group(0))
+
+    # add enough rows and cells to the table according to json size
+    cell_info = []
+    for idx, table in enumerate(document.tables):
+        name = table_names[idx][3:-1]
+
+        # add missing rows
+        while len(table.rows) < len(data[name]) + 1:
+            table.add_row()
+
+        # get cell info for replication
+        for cell in table.rows[1].cells:
+            text = [paragraph.text for paragraph in cell.paragraphs if paragraph.text != ""]
+            cell_info.append(text)
+
+        # replicate info on each cell
+        for row in table.rows[1:]:
+            for x, cell in enumerate(row.cells):
+                cell.paragraphs[0].text = cell_info[x]
+
+        # fill table rows with json data
+        for x, row in enumerate(table.rows[1:]):
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    if replace := re.search(begin_list_regex, paragraph.text):
+                        paragraph.text = paragraph.text.replace(replace.group(0), "")
+
+                    if replace := re.search(end_list_regex, paragraph.text):
+                        paragraph.text = paragraph.text.replace(replace.group(0), "")
+
+                    if replace := re.search(list_value_regex, paragraph.text):
+                        paragraph.text = paragraph.text.replace(replace.group(0), data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
 
     document.save(output_path)
 
@@ -263,3 +293,15 @@ def fill_ppt_template(template_name, data, filled_file_name):
 
     template.save(filled_file_name)
     return
+
+
+if __name__ == "__main__":
+    print(os.path.dirname(os.path.realpath(__file__)))
+
+    data = json.load(open("../Templates/input/final.json"))
+
+    file_path = "../Templates/input/1.docx"
+
+    output_path = "../Templates/output/result1.docx"
+
+    fill_docx_template(file_path, data, output_path)
