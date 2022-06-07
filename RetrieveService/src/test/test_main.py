@@ -18,15 +18,21 @@ def test_return_file_names_and_size():
     conn.create_bucket(Bucket=bucket_name)
 
     s3 = boto3.client('s3')
-    s3.put_object(Bucket=bucket_name, Key="text1.xlsx", Body="test")
-    s3.put_object(Bucket=bucket_name, Key="text2.docx", Body="test")
+    prefix = "template"
+    s3.put_object(Bucket=bucket_name, Key=prefix + "/excel/text1.xlsx", Body="test")
+    s3.put_object(Bucket=bucket_name, Key=prefix + "/word/text2.docx", Body="test")
 
     response = test_app.get("/api/2/files")
 
     assert response.status_code == 200
     assert response.headers["Access-Control-Allow-Origin"] == "*"
-    assert response.json()["data"][0]["Name"] == "text1.xlsx"
-    assert response.json()["data"][1]["Name"] == "text2.docx"
+    assert response.json()["data"][0]["name"] == "text1.xlsx"
+    assert response.json()["data"][0]["type"] == "template"
+    assert response.json()["data"][0]["format"] == "excel"
+
+    assert response.json()["data"][1]["name"] == "text2.docx"
+    assert response.json()["data"][1]["type"] == "template"
+    assert response.json()["data"][1]["format"] == "word"
 
 
 @mock_s3
@@ -38,7 +44,7 @@ def test_return_downloaded_file():
     """
     conn = boto3.resource('s3')
     conn.create_bucket(Bucket=bucket_name)
-    file_name = "text1.xlsx"
+    file_name = "template/excel/text1.xlsx"
 
     s3 = boto3.client('s3')
     s3.put_object(Bucket=bucket_name, Key=file_name, Body="test")
@@ -59,12 +65,12 @@ def test_error_when_downloaded_file_not_found():
     """
     conn = boto3.resource('s3')
     conn.create_bucket(Bucket=bucket_name)
-    file_name = "text1.xlsx"
+    file_name = "template/excel/text1.xlsx"
 
     s3 = boto3.client('s3')
     s3.put_object(Bucket=bucket_name, Key=file_name, Body="test")
 
-    response = test_app.get("/api/2/files/wrong_file")
+    response = test_app.get("/api/2/files/template/excel/wrong_file")
 
     assert response.status_code == 400
     assert response.headers["Access-Control-Allow-Origin"] == "*"

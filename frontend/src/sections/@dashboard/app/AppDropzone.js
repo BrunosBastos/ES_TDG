@@ -2,7 +2,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 // material
-import { Card, CardHeader, Box } from '@mui/material';
+import { Card, CardHeader, Box, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // services
 import FileService from '../../../services/FileService';
@@ -72,6 +72,7 @@ function fileValidator(file) {
 export default function Dropzone({ title, subheader, other }) {
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
+    const [filename, setFilename] = useState("");
 
     const onDrop = useCallback(acceptedFiles => {
         setFiles([...files, ...acceptedFiles])
@@ -114,13 +115,14 @@ export default function Dropzone({ title, subheader, other }) {
     }
 
     const onSubmit = () => {
-        if (!submissionIsValid()) {
+        if (!submissionIsValid() || filename == "") {
             return;
         }
         setLoading(true);
 
         const formData = new FormData();
         formData.set('upload_file', files[0]);
+        formData.set('filename', filename);
 
         service.uploadFile(formData)
             .then(res => res.json())
@@ -134,6 +136,9 @@ export default function Dropzone({ title, subheader, other }) {
 
             <Box sx={{ p: 3, pb: 1 }} dir="ltr">
                 <section className="container">
+                    <div style={{marginBottom: 20}}>
+                        <TextField id="filename_input" label="Template name" variant="outlined" onChange={(e) => setFilename(e.target.value)}/>
+                    </div>
                     <div {...getRootProps({ style })}>
                         <input {...getInputProps()} />
                         <p>Drag 'n' drop some files here, or click to select files</p>
