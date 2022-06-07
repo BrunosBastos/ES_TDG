@@ -125,7 +125,7 @@ def fill_excel_template(template_name, data, filled_file_name):
     template.save(filled_file_name)
 
 
-def fill_docx_template(file_path, data, output_path):
+def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
     """
     Fills word template with JSON data
 
@@ -140,7 +140,7 @@ def fill_docx_template(file_path, data, output_path):
     """
 
     # open file
-    document = docx.Document(file_path)
+    document = docx.Document(template_name)
 
     # regex
     value_regex = re.compile(r"\$\{\w+}*")
@@ -239,7 +239,7 @@ def fill_docx_template(file_path, data, output_path):
                         paragraph.text = paragraph.text.replace(replace.group(0),
                                                                 data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
 
-    document.save(output_path)
+    document.save(filled_file_name)
 
 
 def fill_ppt_template(template_name, data, filled_file_name):
