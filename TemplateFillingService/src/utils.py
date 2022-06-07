@@ -74,7 +74,7 @@ def get_file_extension(filename, format) -> str:
 
 def _get_blank_slide_layout(pres):
     """
-    Aux function for duplicating slide 
+    Aux function for duplicating slide
     Gets the blank layout of a presentation
     Parameters
     ----------
@@ -89,7 +89,7 @@ def _get_blank_slide_layout(pres):
     layout_items_count = [len(layout.placeholders) for layout in pres.slide_layouts]
     min_items = min(layout_items_count)
     blank_layout_id = layout_items_count.index(min_items)
-    
+
     return pres.slide_layouts[blank_layout_id]
 
 

@@ -57,7 +57,7 @@ async def post_template(
         s3.download_file(
             bucket_name, retrieval_filename, t_filename
         )
-    
+        
         file_extension = get_file_extension(t_filename, t_format)
 
         if not output_filename.endswith(file_extension):
@@ -99,8 +99,8 @@ def fill_excel_template(template_name, data, filled_file_name):
         data : JSON
             The JSON data to be used in filling
         filled_file_name : `str`
-            The name of the resulting file 
-    """ 
+            The name of the resulting file
+    """
 
     # load template
     template = oxl.load_workbook(template_name)
@@ -124,8 +124,6 @@ def fill_excel_template(template_name, data, filled_file_name):
 
     template.save(filled_file_name)
 
-    
-
 
 def fill_ppt_template(template_name, data, filled_file_name):
     """
@@ -138,15 +136,15 @@ def fill_ppt_template(template_name, data, filled_file_name):
         data : JSON
             The JSON data to be used in filling
         filled_file_name : `str`
-            The name of the resulting file 
-    """ 
+            The name of the resulting file
+    """
 
     # load template
     template = Presentation(template_name)
 
     [duplicate_slide(template, 0) for _ in range(1, len(data["records"]))]
 
-    i=0
+    i = 0
     # go through data
     for slide_data in data["records"]:
         slide_shape = template.slides[i]
@@ -157,7 +155,7 @@ def fill_ppt_template(template_name, data, filled_file_name):
                 data_params = re.findall(r"\{([A-Za-z0-9_]+)\}", whole_text)
                 for d in data_params:
                     if d in slide_data.keys():
-                        whole_text = whole_text.replace(f"{{{d}}}", slide_data[d]) 
+                        whole_text = whole_text.replace(f"{{{d}}}", slide_data[d])
                 for idx, run in enumerate(slide_paragraph.runs):
                     if idx == 0:
                         continue
@@ -165,7 +163,7 @@ def fill_ppt_template(template_name, data, filled_file_name):
                     p.remove(run._r)
                 slide_paragraph.runs[0].text = whole_text
 
-        i+=1
+        i += 1
 
     template.save(filled_file_name)
     return
@@ -182,7 +180,7 @@ def fill_word_template(template_name, data, filled_file_name):
         data : JSON
             The JSON data to be used in filling
         filled_file_name : `str`
-            The name of the resulting file 
+            The name of the resulting file
+    """
 
-    """ 
     return
