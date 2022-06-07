@@ -237,7 +237,8 @@ def fill_docx_template(file_path, data, output_path):
                         paragraph.text = paragraph.text.replace(replace.group(0), "")
 
                     if replace := re.search(list_value_regex, paragraph.text):
-                        paragraph.text = paragraph.text.replace(replace.group(0), data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
+                        paragraph.text = paragraph.text.replace(replace.group(0),
+                                                                data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
 
     document.save(output_path)
 
@@ -285,14 +286,3 @@ def fill_ppt_template(template_name, data, filled_file_name):
     template.save(filled_file_name)
     return
 
-
-if __name__ == "__main__":
-    print(os.path.dirname(os.path.realpath(__file__)))
-
-    data = json.load(open("../Templates/input/final.json"))
-
-    file_path = "../Templates/input/1.docx"
-
-    output_path = "../Templates/output/result1.docx"
-
-    fill_docx_template(file_path, data, output_path)
