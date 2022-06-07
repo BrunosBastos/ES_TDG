@@ -8,7 +8,6 @@ import openpyxl as oxl
 import json
 import re
 from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
-import os
 import docx
 
 app = FastAPI()
@@ -144,10 +143,10 @@ def fill_docx_template(file_path, data, output_path):
     document = docx.Document(file_path)
 
     # regex
-    value_regex = re.compile("\$\{\w+}*")
-    begin_list_regex = re.compile("\$\{#\w+}*")
-    end_list_regex = re.compile("\$\{\w+#}*")
-    list_value_regex = re.compile("\$\{\.\w+}*")
+    value_regex = re.compile(r"\$\{\w+}*")
+    begin_list_regex = re.compile(r"\$\{#\w+}*")
+    end_list_regex = re.compile(r"\$\{\w+#}*")
+    list_value_regex = re.compile(r"\$\{\.\w+}*")
 
     # iterate through paragraphs in document
     in_list = False
@@ -285,4 +284,3 @@ def fill_ppt_template(template_name, data, filled_file_name):
 
     template.save(filled_file_name)
     return
-
