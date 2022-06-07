@@ -27,7 +27,8 @@ services:
   frontend:
     image: ghcr.io/brunosbastos/es_tdg/frontend
     environment:
-      - HOST_NAME=ec2-18-215-185-124.compute-1.amazonaws.com
+      - API_URL="http://localhost/api"
+        HOST_NAME="localhost"
     ports:
       - 80:80
     

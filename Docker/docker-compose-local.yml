@@ -29,7 +29,8 @@ services:
       context: ../frontend
       dockerfile: ../Docker/Dockerfile.frontend
     environment:
-      - HOST_NAME=localhost
+      - API_URL="http://localhost/api"
+        HOST_NAME="localhost"
     ports:
       - 80:80
     
