@@ -22,6 +22,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
 import DownloadIcon from '@mui/icons-material/Download';
+
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // components
@@ -96,6 +97,8 @@ export default function ListTemplates() {
         if (selected == "" || file == null || filledFilename == "")
             return;
 
+
+        console.log("hi");
         const formData = new FormData();
         formData.set('upload_file', file);
         formData.set('output_filename', filledFilename);
@@ -118,6 +121,7 @@ export default function ListTemplates() {
         if (selected == "")
             return;
 
+        console.log(selected);
         const formData = new FormData();
         formData.set('filepath', selected);
         service.deleteFile(formData)
@@ -229,9 +233,9 @@ export default function ListTemplates() {
                                                 </Button>
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, false) }}>
-                                                    <TbTrash />
-                                                </Button>}
+                                                <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, false) }}>
+                                                    Delete
+                                                </Button>
                                             </TableCell>
 
                                         </TableRow>
