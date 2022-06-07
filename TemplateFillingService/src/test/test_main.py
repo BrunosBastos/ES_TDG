@@ -36,7 +36,7 @@ def test_fill_excel_file():
     )
 
     assert response.status_code == 200
-    
+
     # filled file was created and saved in the correct folder
     assert s3.get_object(Bucket='tdg-s3-bucket', Key=path_filled)
 
@@ -71,6 +71,6 @@ def test_fill_powerpoint_file():
     )
 
     assert response.status_code == 200
-    
+
     # filled file was created and saved in the correct folder
     assert s3.get_object(Bucket='tdg-s3-bucket', Key=path_filled)

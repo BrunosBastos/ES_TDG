@@ -57,7 +57,7 @@ async def post_template(
         s3.download_file(
             bucket_name, retrieval_filename, t_filename
         )
-        
+
         file_extension = get_file_extension(t_filename, t_format)
 
         if not output_filename.endswith(file_extension):
@@ -66,7 +66,7 @@ async def post_template(
         # fill excel template
         if file_extension == "xlsx":
             fill_excel_template(t_filename, data, output_filename)
-        
+
         # fill pptx template
         elif file_extension == "pptx" or file_extension == "ppt":
             fill_ppt_template(t_filename, data, output_filename)
