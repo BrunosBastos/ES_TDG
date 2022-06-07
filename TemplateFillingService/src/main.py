@@ -7,15 +7,9 @@ import logging
 import openpyxl as oxl
 import json
 import re
-
-
 from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
-
-# TODO: remove this import after done
 import os
 import docx
-import xml.etree.ElementTree as ET
-import zipfile
 
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
@@ -99,9 +93,6 @@ def fill_excel_template(template_name, data, filled_file_name):
     """
     Fills excel template with JSON data
 
-<<<<<<< HEAD
-def fill_template(template_name, data, filled_file_name):
-=======
     Parameters
     ----------
         template_name : `str`
