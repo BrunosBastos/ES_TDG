@@ -43,14 +43,13 @@ class FileService {
         })
     }
 
-    async deleteFile(payload) {
-        return fetch(config.API_URL + "/1/delete", {
+    async deleteFile(path) {
+        return fetch(config.API_URL + "/1/files/" + path, {
             headers: {
                 'Accept': 'application/json',
             },
             mode: "cors",
-            method: "POST",
-            body: payload
+            method: "DELETE",
         })
     }
 }

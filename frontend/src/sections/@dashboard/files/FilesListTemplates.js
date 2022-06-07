@@ -22,6 +22,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
 import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -40,17 +41,15 @@ export default function ListTemplates() {
     const [file, setFile] = useState(null);
     const [filledFilename, setFilledFilename] = useState("");
     const [open, setOpen] = useState(false);
-    const [openDelete, setOpenDelete] = useState(false);
+    const [openFill, setOpenFill] = useState(true);
     const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
 
-    const handleClickOpen = (templateFormat, templateName, fill) => {
-        setSelected("template/" + templateFormat + "/" + templateName);
-        if (fill)
-            setOpen(true);
-        else
-            setOpenDelete(true);
+    const handleClickOpen = (templateType, templateFormat, templateName, fill) => {
+        setSelected(templateType + "/" + templateFormat + "/" + templateName);
+        setOpenFill(fill);
+        setOpen(true);
     };
 
     const handleClose = () => {
@@ -58,7 +57,6 @@ export default function ListTemplates() {
         setFile(null);
         setFilledFilename("");
         setOpen(false);
-        setOpenDelete(false);
     };
 
     const handleUploadJson = (e) => {
@@ -97,8 +95,6 @@ export default function ListTemplates() {
         if (selected == "" || file == null || filledFilename == "")
             return;
 
-
-        console.log("hi");
         const formData = new FormData();
         formData.set('upload_file', file);
         formData.set('output_filename', filledFilename);
@@ -117,15 +113,18 @@ export default function ListTemplates() {
      * as a toaster.
      * @returns void 
      */
-     const deleteFile = () => {
+    const deleteFile = () => {
         if (selected == "")
             return;
 
-        console.log(selected);
-        const formData = new FormData();
-        formData.set('filepath', selected);
-        service.deleteFile(formData)
+        service.deleteFile(selected)
             .then(res => res.json())
+            .then(res => {
+                toast.success("Successfully deleted file " + selected)    
+                setRows(rows.filter((r) => 
+                    r.type + "/" + r.format + "/" + r.name !== selected
+                ))
+            })
             .catch(error => toast.error(error));
 
         handleClose();
@@ -190,7 +189,7 @@ export default function ListTemplates() {
                             <Table stickyHeader sx={{ minWidth: 650 }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell style={{ width: "55%" }} align="left">
+                                        <TableCell style={{ width: "50%" }} align="left">
                                             <HeadCellSort cellKey={'name'}>Name</HeadCellSort>
                                         </TableCell>
                                         <TableCell style={{ width: "10%" }} align="left">
@@ -202,6 +201,7 @@ export default function ListTemplates() {
                                         <TableCell style={{ width: "15%" }} align="right">
                                             <HeadCellSort cellKey={'size'} align="right">Size</HeadCellSort>
                                         </TableCell>
+                                        <TableCell style={{ width: "5%" }} align="left" />
                                         <TableCell style={{ width: "5%" }} align="left" />
                                         <TableCell style={{ width: "5%" }} align="left" />
                                     </TableRow>
@@ -223,7 +223,7 @@ export default function ListTemplates() {
                                             </TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, true) }}>
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
                                                     Fill
                                                 </Button>}
                                             </TableCell>
@@ -233,11 +233,10 @@ export default function ListTemplates() {
                                                 </Button>
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name, false) }}>
-                                                    Delete
+                                                <Button variant="outlined" color="error" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
+                                                    <DeleteIcon />
                                                 </Button>
                                             </TableCell>
-
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -246,56 +245,59 @@ export default function ListTemplates() {
                 }
             </Box>
             <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Upload Json Data</DialogTitle>
-                <DialogContent style={{ textAlign: "center" }}>
-                    <DialogContentText>
-                        Import your data to fill the selected template.
-                    </DialogContentText>
-                    <div style={{ display: "flex", alignItems: "flex-end" }}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Filename"
-                            type="text"
-                            variant="standard"
-                            onChange={(e) => setFilledFilename(e.target.value)}
-                        />
-                        <div style={{ margin: 10 }}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                            >
-                                Upload File
-                                <input
-                                    onChange={handleUploadJson}
-                                    type="file"
-                                    hidden
+                {openFill ?
+                    <>
+                        <DialogTitle>Upload Json Data</DialogTitle>
+                        <DialogContent style={{ textAlign: "center" }}>
+                            <DialogContentText>
+                                Import your data to fill the selected template.
+                            </DialogContentText>
+                            <div style={{ display: "flex", alignItems: "flex-end" }}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="name"
+                                    label="Filename"
+                                    type="text"
+                                    variant="standard"
+                                    onChange={(e) => setFilledFilename(e.target.value)}
                                 />
-                            </Button>
-                        </div>
-                    </div>
+                                <div style={{ margin: 10 }}>
+                                    <Button
+                                        variant="outlined"
+                                        component="label"
+                                    >
+                                        Upload File
+                                        <input
+                                            onChange={handleUploadJson}
+                                            type="file"
+                                            hidden
+                                        />
+                                    </Button>
+                                </div>
+                            </div>
 
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
-                </DialogActions>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
+                        </DialogActions>
+                    </>
+                    :
+                    <>
+                        <DialogTitle>Delete File</DialogTitle>
+                        <DialogContent style={{ textAlign: "center" }}>
+                            <DialogContentText>
+                                Are you sure you want to delete this file?
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button color="error" variant="contained" onClick={deleteFile}>Delete</Button>
+                        </DialogActions>
+                    </>}
             </Dialog>
 
-
-            <Dialog open={openDelete} onClose={handleClose}>
-                <DialogTitle>Delete File</DialogTitle>
-                <DialogContent style={{ textAlign: "center" }}>
-                    <DialogContentText>
-                        Are you sure you want to delete this file?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={deleteFile}>Delete</Button>
-                </DialogActions>
-            </Dialog>
         </Card>
     )
 }
