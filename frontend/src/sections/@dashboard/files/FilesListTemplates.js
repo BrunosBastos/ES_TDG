@@ -21,8 +21,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import DownloadIcon from '@mui/icons-material/Download';
-
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // components
@@ -44,9 +47,10 @@ export default function ListTemplates() {
     const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
+    const [fileFormat, setFileFormat] = useState("");
 
-    const handleClickOpen = (templateFormat, templateName, fill) => {
-        setSelected("template/" + templateFormat + "/" + templateName);
+    const handleClickOpen = (fileFormat, templateName, fill) => {
+        setSelected("template/" + fileFormat + "/" + templateName);
         if (fill)
             setOpen(true);
         else
@@ -117,7 +121,7 @@ export default function ListTemplates() {
      * as a toaster.
      * @returns void 
      */
-     const deleteFile = () => {
+    const deleteFile = () => {
         if (selected == "")
             return;
 
@@ -155,7 +159,7 @@ export default function ListTemplates() {
 
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
     const filteredRows = rows && rows
-        .filter((r) => isEmpty(search) || isIncluded(search, r.name))
+        .filter((r) => (isEmpty(search) || isIncluded(search, r.name)) && (isEmpty(fileFormat) || fileFormat === r.format))
         .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
             : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
 
@@ -174,8 +178,27 @@ export default function ListTemplates() {
     return (
         <Card>
             <CardHeader title={"List Files"} subheader={"See your templates"} />
-            <Box sx={{ p: 3, pb: 1 }}>
+            <Box sx={{ p: 3, pb: 1, display: "flex" }}>
                 <Searchbar placeholder='Search template...' handleSearch={setSearch} />
+
+                <FormControl sx={{ m: 1, minWidth: 180 }}>
+                    <InputLabel id="select-template-format">File Format</InputLabel>
+                    <Select
+                        labelId="select-template-format"
+                        id="select-template-format"
+                        value={fileFormat}
+                        label="File Format"
+                        onChange={(e) => setFileFormat(e.target.value)}
+                    >
+                        <MenuItem value="">
+                            <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={"excel"}>Excel</MenuItem>
+                        <MenuItem value={"word"}>Word</MenuItem>
+                        <MenuItem value={"powerpoint"}>PowerPoint</MenuItem>
+                    </Select>
+                </FormControl>
+
             </Box>
             <Box sx={{ p: 3, pb: 1, minHeight: 250, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
@@ -296,6 +319,6 @@ export default function ListTemplates() {
                     <Button color="primary" variant="contained" onClick={deleteFile}>Delete</Button>
                 </DialogActions>
             </Dialog>
-        </Card>
+        </Card >
     )
 }
