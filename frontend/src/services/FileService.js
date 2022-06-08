@@ -42,6 +42,16 @@ class FileService {
             body: payload
         })
     }
+
+    async deleteFile(path) {
+        return fetch(config.API_URL + "/1/files/" + path, {
+            headers: {
+                'Accept': 'application/json',
+            },
+            mode: "cors",
+            method: "DELETE",
+        })
+    }
 }
 
 export default FileService;
