@@ -10,15 +10,15 @@ server {
     }
 
     location /api/1 {
-        proxy_pass  "http://${HOST_NAME}:8000/api/1";
+        proxy_pass  "http://api1:8000/api/1";
     }
 
     location /api/2 {
-        proxy_pass  "http://${HOST_NAME}:8001/api/2";
+        proxy_pass  "http://api2:8000/api/2";
     }
 
     location /api/3 {
-        proxy_pass  "http://${HOST_NAME}:8002/api/3";
+        proxy_pass  "http://api3:8000/api/3";
     }
 
     #error_page  404              /404.html;

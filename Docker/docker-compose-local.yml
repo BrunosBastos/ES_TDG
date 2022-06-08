@@ -6,30 +6,28 @@ services:
       dockerfile: ../Docker/Dockerfile.backend
     ports: 
       - 8000:8000
-    depends_on:
-      - frontend
   api2:
     build:
       context: ../RetrieveService
       dockerfile: ../Docker/Dockerfile.backend
     ports: 
       - 8001:8000
-    depends_on:
-      - frontend
   api3:
     build:
       context: ../TemplateFillingService
       dockerfile: ../Docker/Dockerfile.backend
     ports: 
       - 8002:8000
-    depends_on:
-      - frontend
   frontend:
     build:
       context: ../frontend
       dockerfile: ../Docker/Dockerfile.frontend
       args:
         - REACT_APP_API_URL=http://localhost/api
+    links:
+      - api1
+      - api2
+      - api3
     environment:
       - HOST_NAME=localhost
     ports:

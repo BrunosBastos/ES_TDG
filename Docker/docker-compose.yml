@@ -26,6 +26,10 @@ services:
       - frontend
   frontend:
     image: ghcr.io/brunosbastos/es_tdg/frontend
+    links:
+      - api1
+      - api2
+      - api3
     environment:
       - HOST_NAME=18.215.185.124
     ports:

@@ -1,5 +1,8 @@
 FROM python:3.9
 
+
+COPY .aws/credentials /root/.aws/credentials
+
 WORKDIR /backend
 
 COPY ./requirements.txt /backend/requirements.txt
