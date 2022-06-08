@@ -60,7 +60,7 @@ async def post_template(
 
         file_extension = get_file_extension(t_filename, t_format)
 
-        if not output_filename.endswith(file_extension):
+        if not output_filename.endswith("." + file_extension):
             output_filename += "." + file_extension
 
         # fill excel template
