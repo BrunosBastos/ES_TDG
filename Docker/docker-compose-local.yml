@@ -3,19 +3,19 @@ services:
   api1:
     build:
       context: ../StoreService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8000:8000
   api2:
     build:
       context: ../RetrieveService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8001:8000
   api3:
     build:
       context: ../TemplateFillingService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8002:8000
   frontend:
