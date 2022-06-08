@@ -39,3 +39,6 @@ jobs:
       run: |
         cd RetrieveService/src/
         pytest
+    - name: Test TemplateFillingService
+    	cd TemplateFillingService
+    	pytest
