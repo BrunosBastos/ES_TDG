@@ -27,8 +27,7 @@ services:
   frontend:
     image: ghcr.io/brunosbastos/es_tdg/frontend
     environment:
-      - API_URL="http://localhost/api"
-        HOST_NAME="localhost"
+      - HOST_NAME="18.215.185.124"
     ports:
       - 80:80
     

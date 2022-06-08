@@ -28,9 +28,10 @@ services:
     build:
       context: ../frontend
       dockerfile: ../Docker/Dockerfile.frontend
+      args:
+        - REACT_APP_API_URL=http://127.0.0.1/api
     environment:
-      - API_URL="http://localhost/api"
-        HOST_NAME="localhost"
+      - HOST_NAME=127.0.0.1
     ports:
       - 80:80
     
