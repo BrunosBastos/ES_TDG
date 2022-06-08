@@ -1,8 +1,6 @@
 # nginx state for serving content
 FROM nginx:alpine
 
-ENV REACT_APP_API_URL="http://18.215.185.124/api"
-
 #copy defaults
 COPY templates /etc/nginx/templates/
 
