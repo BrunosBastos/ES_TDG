@@ -58,7 +58,7 @@ async def post_template(
             return create_response(status_code=400, message="File extension not supported.")
 
         # adds file extension to the file in case the user did not provide it
-        if not filename.endswith(file_extension):
+        if not filename.endswith("." + file_extension):
             filename += "." + file_extension
 
         # saves in the templates directory with the file format correct
