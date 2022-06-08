@@ -17,7 +17,7 @@ jobs:
       uses: docker/login-action@v2
       with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: BrunosBastos
           password: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v3
     - name: Build the Docker image
