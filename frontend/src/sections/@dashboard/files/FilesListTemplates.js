@@ -21,7 +21,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // components
@@ -39,12 +45,15 @@ export default function ListTemplates() {
     const [file, setFile] = useState(null);
     const [filledFilename, setFilledFilename] = useState("");
     const [open, setOpen] = useState(false);
+    const [openFill, setOpenFill] = useState(true);
     const [sortKey, setSortKey] = useState("name");
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
+    const [fileFormat, setFileFormat] = useState("");
 
-    const handleClickOpen = (templateFormat, templateName) => {
-        setSelected("template/" + templateFormat + "/" + templateName);
+    const handleClickOpen = (templateType, templateFormat, templateName, fill) => {
+        setSelected(templateType + "/" + templateFormat + "/" + templateName);
+        setOpenFill(fill);
         setOpen(true);
     };
 
@@ -82,7 +91,7 @@ export default function ListTemplates() {
     };
 
     /**
-     * The user selectes a json file and a template that needs to be filled with data. 
+     * The user selects a json file and a template that needs to be filled with data. 
      * A HTTP request is made to the backend and the results of the request are displayed to the user
      * as a toaster.
      * @returns void 
@@ -98,6 +107,29 @@ export default function ListTemplates() {
         service.uploadJsonData(formData)
             .then(res => res.json())
             .then(res => toast.success("Successfully filled the template."))
+            .catch(error => toast.error(error));
+
+        handleClose();
+    };
+
+    /**
+     * The user confirms the deletion of a file.
+     * A HTTP request is made to the backend and the results of the request are displayed to the user
+     * as a toaster.
+     * @returns void 
+     */
+    const deleteFile = () => {
+        if (selected == "")
+            return;
+
+        service.deleteFile(selected)
+            .then(res => res.json())
+            .then(res => {
+                toast.success("Successfully deleted file " + selected)    
+                setRows(rows.filter((r) => 
+                    r.type + "/" + r.format + "/" + r.name !== selected
+                ))
+            })
             .catch(error => toast.error(error));
 
         handleClose();
@@ -127,7 +159,7 @@ export default function ListTemplates() {
 
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
     const filteredRows = rows && rows
-        .filter((r) => isEmpty(search) || isIncluded(search, r.name))
+        .filter((r) => (isEmpty(search) || isIncluded(search, r.name)) && (isEmpty(fileFormat) || fileFormat === r.format))
         .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
             : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
 
@@ -146,8 +178,27 @@ export default function ListTemplates() {
     return (
         <Card>
             <CardHeader title={"List Files"} subheader={"See your templates"} />
-            <Box sx={{ p: 3, pb: 1 }}>
+            <Box sx={{ p: 3, pb: 1, display: "flex" }}>
                 <Searchbar placeholder='Search template...' handleSearch={setSearch} />
+
+                <FormControl sx={{ m: 1, minWidth: 180 }}>
+                    <InputLabel id="select-template-format">File Format</InputLabel>
+                    <Select
+                        labelId="select-template-format"
+                        id="select-template-format"
+                        value={fileFormat}
+                        label="File Format"
+                        onChange={(e) => setFileFormat(e.target.value)}
+                    >
+                        <MenuItem value="">
+                            <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={"excel"}>Excel</MenuItem>
+                        <MenuItem value={"word"}>Word</MenuItem>
+                        <MenuItem value={"powerpoint"}>PowerPoint</MenuItem>
+                    </Select>
+                </FormControl>
+
             </Box>
             <Box sx={{ p: 3, pb: 1, minHeight: 250, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
@@ -162,7 +213,7 @@ export default function ListTemplates() {
                             <Table stickyHeader sx={{ minWidth: 650 }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell style={{ width: "55%" }} align="left">
+                                        <TableCell style={{ width: "50%" }} align="left">
                                             <HeadCellSort cellKey={'name'}>Name</HeadCellSort>
                                         </TableCell>
                                         <TableCell style={{ width: "10%" }} align="left">
@@ -176,6 +227,7 @@ export default function ListTemplates() {
                                         </TableCell>
                                         <TableCell style={{ width: "5%" }} align="left" />
                                         <TableCell style={{ width: "5%" }} align="left" />
+                                        <TableCell style={{ width: "5%" }} align="left" />
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -184,7 +236,7 @@ export default function ListTemplates() {
                                             key={row.name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{ width: "55%" }} component="th" scope="row">
+                                            <TableCell style={{ width: "50%" }} component="th" scope="row">
                                                 {row.name}
                                             </TableCell>
                                             <TableCell style={{ width: "10%" }} component="th" scope="row">
@@ -195,7 +247,7 @@ export default function ListTemplates() {
                                             </TableCell>
                                             <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen(row.format, row.name) }}>
+                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
                                                     Fill
                                                 </Button>}
                                             </TableCell>
@@ -204,7 +256,11 @@ export default function ListTemplates() {
                                                     <DownloadIcon />
                                                 </Button>
                                             </TableCell>
-
+                                            <TableCell style={{ width: "5%" }} align="left" >
+                                                <Button variant="outlined" color="error" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
+                                                    <DeleteIcon />
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -213,42 +269,59 @@ export default function ListTemplates() {
                 }
             </Box>
             <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Upload Json Data</DialogTitle>
-                <DialogContent style={{ textAlign: "center" }}>
-                    <DialogContentText>
-                        Import your data to fill the selected template.
-                    </DialogContentText>
-                    <div style={{ display: "flex", alignItems: "flex-end" }}>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Filename"
-                            type="text"
-                            variant="standard"
-                            onChange={(e) => setFilledFilename(e.target.value)}
-                        />
-                        <div style={{ margin: 10 }}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                            >
-                                Upload File
-                                <input
-                                    onChange={handleUploadJson}
-                                    type="file"
-                                    hidden
+                {openFill ?
+                    <>
+                        <DialogTitle>Upload Json Data</DialogTitle>
+                        <DialogContent style={{ textAlign: "center" }}>
+                            <DialogContentText>
+                                Import your data to fill the selected template.
+                            </DialogContentText>
+                            <div style={{ display: "flex", alignItems: "flex-end" }}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="name"
+                                    label="Filename"
+                                    type="text"
+                                    variant="standard"
+                                    onChange={(e) => setFilledFilename(e.target.value)}
                                 />
-                            </Button>
-                        </div>
-                    </div>
+                                <div style={{ margin: 10 }}>
+                                    <Button
+                                        variant="outlined"
+                                        component="label"
+                                    >
+                                        Upload File
+                                        <input
+                                            onChange={handleUploadJson}
+                                            type="file"
+                                            hidden
+                                        />
+                                    </Button>
+                                </div>
+                            </div>
 
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
-                </DialogActions>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button color="primary" variant="contained" onClick={uploadJsonData}>Upload Data</Button>
+                        </DialogActions>
+                    </>
+                    :
+                    <>
+                        <DialogTitle>Delete File</DialogTitle>
+                        <DialogContent style={{ textAlign: "center" }}>
+                            <DialogContentText>
+                                Are you sure you want to delete this file?
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button color="error" variant="contained" onClick={deleteFile}>Delete</Button>
+                        </DialogActions>
+                    </>}
             </Dialog>
+
         </Card>
     )
 }
