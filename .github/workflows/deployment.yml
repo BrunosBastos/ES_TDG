@@ -33,4 +33,4 @@ jobs:
     - name: Start compose
       run: |
         cd /home/ec2-user/ES_TDG/Docker
-        docker-compose up --build
+        docker-compose up --build -d
