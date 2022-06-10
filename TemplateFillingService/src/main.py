@@ -239,7 +239,10 @@ def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
                         paragraph.text = paragraph.text.replace(replace.group(0),
                                                                 data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
 
-    document.save(filled_file_name)
+    if filled_file_name.endswith(".docx"):
+        document.save(filled_file_name)
+    else:
+        document.save(f"{filled_file_name}.docx")
 
 
 def fill_ppt_template(template_name, data, filled_file_name):
