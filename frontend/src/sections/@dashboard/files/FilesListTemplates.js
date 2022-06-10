@@ -24,10 +24,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import IconButton from '@mui/material/IconButton';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // components
@@ -35,11 +35,14 @@ import Searchbar from 'src/components/Searchbar';
 // services
 import FileService from 'src/services/FileService';
 //
+import word from 'src/assets/word.svg';
+import excel from 'src/assets/excel.svg';
+import powerpoint from 'src/assets/powerpoint.svg';
 import { config } from 'src/consts';
 
 const service = FileService.getInstance();
 
-export default function ListTemplates() {
+export default function FilesListTemplates({ filledTemplates }) {
     const [rows, setRows] = useState(null);
     const [selected, setSelected] = useState("");        // contains the path of the selected template
     const [file, setFile] = useState(null);
@@ -70,7 +73,7 @@ export default function ListTemplates() {
     };
 
     useEffect(() => {
-        service.getAllFiles()
+        service.getAllFiles(filledTemplates ? "filled" : "template")
             .then(res => res.json())
             .then(res => { setRows(res.data); })
             .catch(_ => setRows([]));
@@ -125,8 +128,8 @@ export default function ListTemplates() {
         service.deleteFile(selected)
             .then(res => res.json())
             .then(res => {
-                toast.success("Successfully deleted file " + selected)    
-                setRows(rows.filter((r) => 
+                toast.success("Successfully deleted file " + selected)
+                setRows(rows.filter((r) =>
                     r.type + "/" + r.format + "/" + r.name !== selected
                 ))
             })
@@ -141,7 +144,6 @@ export default function ListTemplates() {
      * @returns         The same string but the first letter is not uppercase
      */
     const capitalize = (str) => str[0].toUpperCase() + str.slice(1);
-
 
     /**
      * Returns true if the value is null, undefined or a empty string, and false otherwise.
@@ -177,7 +179,7 @@ export default function ListTemplates() {
 
     return (
         <Card>
-            <CardHeader title={"List Files"} subheader={"See your templates"} />
+            <CardHeader title={filledTemplates ? "Filled Templates" : "Empty Templates"} subheader={"See your templates"} />
             <Box sx={{ p: 3, pb: 1, display: "flex" }}>
                 <Searchbar placeholder='Search template...' handleSearch={setSearch} />
 
@@ -198,7 +200,6 @@ export default function ListTemplates() {
                         <MenuItem value={"powerpoint"}>PowerPoint</MenuItem>
                     </Select>
                 </FormControl>
-
             </Box>
             <Box sx={{ p: 3, pb: 1, minHeight: 250, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
@@ -210,24 +211,19 @@ export default function ListTemplates() {
                         </h2>
                         :
                         <TableContainer component={Paper}>
-                            <Table stickyHeader sx={{ minWidth: 650 }}>
+                            <Table stickyHeader sx={{ minWidth: 650, '& td': {boxSizing: 'padding-box'} }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell style={{ width: "50%" }} align="left">
+                                        <TableCell style={{ width: "10%" }} align="left" />
+                                        <TableCell style={{ width: !filledTemplates ? "35%" : "50%" }} align="left">
                                             <HeadCellSort cellKey={'name'}>Name</HeadCellSort>
                                         </TableCell>
-                                        <TableCell style={{ width: "10%" }} align="left">
-                                            <HeadCellSort cellKey={'type'}>Type</HeadCellSort>
-                                        </TableCell>
-                                        <TableCell style={{ width: "10%" }} align="left">
-                                            <HeadCellSort cellKey={'format'}>Format</HeadCellSort>
-                                        </TableCell>
-                                        <TableCell style={{ width: "15%" }} align="right">
+                                        <TableCell style={{ width: "20%" }} align="right">
                                             <HeadCellSort cellKey={'size'} align="right">Size</HeadCellSort>
                                         </TableCell>
-                                        <TableCell style={{ width: "5%" }} align="left" />
-                                        <TableCell style={{ width: "5%" }} align="left" />
-                                        <TableCell style={{ width: "5%" }} align="left" />
+                                        {!filledTemplates && <TableCell style={{ width: "15%" }} align="left" />}
+                                        <TableCell style={{ width: "10%" }} align="left" />
+                                        <TableCell style={{ width: "10%" }} align="left" />
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -236,30 +232,29 @@ export default function ListTemplates() {
                                             key={row.name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{ width: "50%" }} component="th" scope="row">
+                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
+                                                <img src={{ word, excel, powerpoint }[row.format]} alt={row.format} />
+                                            </TableCell>
+                                            <TableCell style={{ width: !filledTemplates ? "35%" : "50%" }} component="th" scope="row">
                                                 {row.name}
                                             </TableCell>
-                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
-                                                {capitalize(row.type)}
-                                            </TableCell>
-                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
-                                                {capitalize(row.format)}
-                                            </TableCell>
-                                            <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
-                                            <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
-                                                    Fill
-                                                </Button>}
-                                            </TableCell>
-                                            <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
+                                            <TableCell style={{ width: "20%" }} align="right">{convertSize(row.size)}</TableCell>
+                                            {!filledTemplates &&
+                                                <TableCell style={{ width: "15%" }} align="left" >
+                                                    {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
+                                                        Fill
+                                                    </Button>}
+                                                </TableCell>
+                                            }
+                                            <TableCell style={{ width: "10%" }} align="left" >
+                                                <IconButton color="primary" component="a" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
                                                     <DownloadIcon />
-                                                </Button>
+                                                </IconButton>
                                             </TableCell>
-                                            <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" color="error" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
+                                            <TableCell style={{ width: "10%" }} align="left" >
+                                                <IconButton color="error" component="span" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
                                                     <DeleteIcon />
-                                                </Button>
+                                                </IconButton>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -300,7 +295,6 @@ export default function ListTemplates() {
                                     </Button>
                                 </div>
                             </div>
-
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handleClose}>Cancel</Button>
@@ -321,7 +315,6 @@ export default function ListTemplates() {
                         </DialogActions>
                     </>}
             </Dialog>
-
         </Card>
     )
 }

@@ -22,8 +22,8 @@ class FileService {
         })
     }
 
-    async getAllFiles() {
-        return fetch(config.API_URL + "/2/files", {
+    async getAllFiles(fileType = null) {
+        return fetch(config.API_URL + "/2/files" + (fileType && "?file_type=" + fileType), {
             headers: {
                 'Accept': 'application/json',
             },
