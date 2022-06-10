@@ -3,29 +3,33 @@ services:
   api1:
     build:
       context: ../StoreService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8000:8000
   api2:
     build:
       context: ../RetrieveService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8001:8000
   api3:
     build:
       context: ../TemplateFillingService
-      dockerfile: ../Docker/Dockerfile.backend
+      dockerfile: ../Docker/Dockerfile.dev.backend
     ports: 
       - 8002:8000
   frontend:
-    image: ghcr.io/brunosbastos/es_tdg/frontend
+    build:
+      context: ../frontend
+      dockerfile: ../Docker/Dockerfile.frontend
+      args:
+        - REACT_APP_API_URL=http://localhost/api
     links:
       - api1
       - api2
       - api3
     environment:
-      - HOST_NAME=18.215.185.124
+      - HOST_NAME=localhost
     ports:
       - 80:80
     
