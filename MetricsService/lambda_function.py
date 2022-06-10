@@ -2,7 +2,8 @@ import json
 import boto3
 from datetime import datetime
 
-def get_metric(namespace, metricname, client):
+# Get metrics from EC2 machine
+def get_metric_ec2(namespace, metricname, client):
     response = client.get_metric_statistics(
             Namespace=namespace, 
             MetricName=metricname,  
@@ -20,21 +21,54 @@ def get_metric(namespace, metricname, client):
             ]
         )
     return response
+
+# Get metrics from S3 bucket  
+def get_metric_s3(namespace, metricname, storageType, client):
+    response = client.get_metric_statistics(
+            Namespace=namespace, 
+            MetricName=metricname,  
+            Dimensions=[
+                {
+                    'Name':'StorageType',
+                    'Value': storageType
+                },
+                {
+                    'Name': 'BucketName' ,
+                    'Value': 'tdg-s3-bucket'
+                }
+            ],
+            StartTime=datetime(2022, 5, 21),
+            EndTime=datetime.now(),
+            Period=3600,
+            Statistics=[
+                'SampleCount','Average','Sum','Minimum','Maximum'
+            ]
+        )
+    return response
         
 def lambda_handler(event, context):
     
     if event["requestContext"]["http"]["sourceIp"] == "18.215.185.124":
         
-        client = boto3.client('cloudwatch',region_name = 'us-east-1')
-        
         path= event["rawPath"].split("/")
         namespace = "AWS/" + path[1]
         metricname= path[2]
         
-        return {
-            'statusCode': 200,
-            'body': json.dumps(get_metric(namespace,metricname, client), default=str)
-        }
+        if namespace == "AWS/EC2":
+            client = boto3.client('cloudwatch',region_name = 'us-east-1')
+            return {
+                'statusCode': 200,
+                'body': json.dumps(get_metric_ec2(namespace,metricname, client), default=str)
+            }
+        else:
+            client = boto3.client('cloudwatch',region_name = 'eu-west-3')
+            storageType = path[3]
+            return {
+                'statusCode': 200,
+                'body': json.dumps(get_metric_s3(namespace,metricname,storageType, client), default=str)
+            }
+        
+        
     else:
         return {
             'statusCode': 200,
