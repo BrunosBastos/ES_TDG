@@ -1,0 +1,35 @@
+name: Run Delivery
+
+on:
+  workflow_run:
+    workflows: ["Docker Image CI"]
+    types:
+      - completed
+      
+jobs:
+
+  build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v3
+    - name: Stop compose
+      run: |
+        cd ES_TDG/Docker
+        docker-compose down
+    - name: Pull dev
+      run: |
+        git pull origin dev
+    - name: Docker prune
+      run: |
+        docker system prune -a
+    - name: Start compose
+      run: |
+        docker-compose up --build
