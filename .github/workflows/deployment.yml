@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Stop compose
       run: |
-        cd /ES_TDG/Docker
+        cd /home/ec2-user/ES_TDG/Docker
         docker-compose down
     - name: Pull dev
       run: |
@@ -32,5 +32,5 @@ jobs:
         docker system prune -a
     - name: Start compose
       run: |
-        cd /ES_TDG/Docker
+        cd /home/ec2-user/ES_TDG/Docker
         docker-compose up --build
