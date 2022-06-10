@@ -9,8 +9,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
 
     steps:
     - name: Login to GitHub Container Registry
@@ -24,6 +22,8 @@ jobs:
       run: |
         cd frontend/
         yarn install && yarn build
-        sudo docker build -f Dockerfile.frontend -t ghcr.io/brunosbastos/es_tdg/frontend .
-        sudo docker push ghcr.io/brunosbastos/es_tdg/frontend
+        sudo docker build -f Dockerfile.frontend -t ghcr.io/brunosbastos/es_tdg/frontend:latest .
+    - name: Push Image
+      run: |
+        docker push ghcr.io/brunosbastos/es_tdg/frontend:latest
 
