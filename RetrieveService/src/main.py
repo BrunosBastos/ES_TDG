@@ -17,7 +17,7 @@ bucket_name = "tdg-s3-bucket"
 
 
 @app.get("/api/2/files")
-async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
+async def get_templates(file_type: str = '', s3=Depends(get_client_s3)) -> JSONResponse:
     """
 
     Endpoint ``/files`` that accepts the method GET. Returns information about
@@ -29,8 +29,14 @@ async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
             Json response with the status code and data containing
             the message and data.
     """
+    if file_type and file_type not in ('filled', 'template'):
+        return create_response(status_code=400, message="Value of query parameter 'file_type' unrecognized.")
     try:
-        file_contents = s3.list_objects_v2(Bucket=bucket_name)["Contents"]
+        if file_type:
+            file_contents = s3.list_objects_v2(Bucket=bucket_name, Prefix=file_type + '/').get("Contents", [])
+        else:
+            file_contents = s3.list_objects_v2(Bucket=bucket_name, Prefix='template/').get("Contents", [])
+            file_contents.extend(s3.list_objects_v2(Bucket=bucket_name, Prefix='filled/').get("Contents", []))
 
         response_data = []
         for f in file_contents:

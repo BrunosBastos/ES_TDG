@@ -18,8 +18,11 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={12} md={12}>
+          <Grid item xs={12} sm={12} md={6}>
             <FilesListTemplates />
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <FilesListTemplates filledTemplates />
           </Grid>
         </Grid>
       </Container>
