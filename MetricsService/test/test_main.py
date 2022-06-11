@@ -3,6 +3,7 @@ from moto import mock_cloudwatch
 import boto3
 import json
 
+
 @mock_cloudwatch
 def test_s3_metrics():
     """
@@ -14,30 +15,29 @@ def test_s3_metrics():
 
     dim = [
                 {
-                    'Name':'StorageType',
+                    'Name': 'StorageType',
                     'Value': 'AllStorageTypes'
                 },
                 {
-                    'Name': 'BucketName' ,
+                    'Name': 'BucketName',
                     'Value': 'tdg-s3-bucket'
                 }
             ]
-     
+
     conn.put_metric_data(
-        Namespace="AWS/S3",  
-        MetricData=[dict(MetricName="NumberOfObjects", Value=1.5, Dimensions = dim)]
+        Namespace="AWS/S3",
+        MetricData=[dict(MetricName="NumberOfObjects", Value=1.5, Dimensions=dim)]
     )
 
 
     event = dict()
-    event["requestContext"]= dict()
+    event["requestContext"] = dict()
     event["requestContext"]["http"] = dict()
-    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124" 
+    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124"
     event["rawPath"] = "/S3/NumberOfObjects/AllStorageTypes"
 
     response = lambda_handler(event, None)
     body = json.loads(response['body'])
-
 
     assert response['statusCode'] == 200
     assert len(body['Datapoints']) == 1
@@ -55,27 +55,25 @@ def test_ec2_metrics():
 
     dim = [
                 {
-                    'Name':'InstanceId',
-                    'Value':'i-092988b42c6dea77e'
+                    'Name': 'InstanceId',
+                    'Value': 'i-092988b42c6dea77e'
                 }
             ]
-     
+
     conn.put_metric_data(
-        Namespace="AWS/EC2",  
-        MetricData=[dict(MetricName="NetworkIn", Value=222.7, Dimensions = dim)]
+        Namespace="AWS/EC2",
+        MetricData=[dict(MetricName="NetworkIn", Value=222.7, Dimensions=dim)]
     )
 
-
     event = dict()
-    event["requestContext"]= dict()
+    event["requestContext"] = dict()
     event["requestContext"]["http"] = dict()
-    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124" 
+    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124"
     event["rawPath"] = "/EC2/NetworkIn"
 
     response = lambda_handler(event, None)
     body = json.loads(response['body'])
 
-    
     assert response['statusCode'] == 200
     assert len(body['Datapoints']) == 1
     assert body['Datapoints'][0]["Average"] == 222.7
