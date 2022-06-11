@@ -71,6 +71,6 @@ def lambda_handler(event, context):
         
     else:
         return {
-            'statusCode': 200,
-            'body': json.dumps(event["requestContext"]["http"]["sourceIp"])
+            'statusCode': 403,
+            'body': json.dumps("Access denied")
         }
