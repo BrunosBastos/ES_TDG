@@ -20,7 +20,10 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: |
+        git pull
         cd frontend/
+        echo "REACT_APP_API_URL = 'http://18.215.185.124/api'" > .env
+        cat .env
         yarn install && yarn build
         sudo docker build -f Dockerfile.frontend -t ghcr.io/brunosbastos/es_tdg/frontend:latest .
     - name: Push Image

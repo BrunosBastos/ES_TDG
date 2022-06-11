@@ -39,6 +39,7 @@ import word from 'src/assets/word.svg';
 import excel from 'src/assets/excel.svg';
 import powerpoint from 'src/assets/powerpoint.svg';
 import { config } from 'src/consts';
+import useAuthStore from 'src/stores/AuthStore';
 
 const service = FileService.getInstance();
 

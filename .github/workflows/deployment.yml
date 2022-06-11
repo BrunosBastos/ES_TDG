@@ -29,7 +29,7 @@ jobs:
         git pull origin dev
     - name: Docker prune
       run: |
-        docker system prune -a
+        docker system prune -a -f
     - name: Start compose
       run: |
         cd /home/ec2-user/ES_TDG/Docker

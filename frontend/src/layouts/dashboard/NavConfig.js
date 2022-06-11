@@ -10,12 +10,17 @@ const navConfig = [
   {
     title: 'dashboard',
     path: '/dashboard/app',
-    icon: getIcon('eva:file-text-fill'),
+    icon: getIcon('mdi:cloud-upload'),
   },
   {
     title: 'show files',
     path: '/dashboard/files',
-    icon: getIcon('eva:shopping-bag-fill'),
+    icon: getIcon('eva:file-text-fill'),
+  },
+  {
+    title: 'metrics',
+    path: '/dashboard/metrics',
+    icon: getIcon('mdi:chart-areaspline'),
   }
 ].concat(!config.SHOW_TEMPLATE ? [] : [
   {

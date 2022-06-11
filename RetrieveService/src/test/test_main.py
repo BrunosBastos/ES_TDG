@@ -72,5 +72,5 @@ def test_error_when_downloaded_file_not_found():
 
     response = test_app.get("/api/2/files/template/excel/wrong_file")
 
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert response.headers["Access-Control-Allow-Origin"] == "*"

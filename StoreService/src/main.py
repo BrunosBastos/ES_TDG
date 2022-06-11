@@ -100,11 +100,18 @@ async def delete_file(
     """
 
     try:
-        # deletes the file
+
         filepath = file_type + "/" + file_format + "/" + file_name
+
+        # check if file exists, throws if it does not
+        s3.head_object(Bucket=bucket_name, Key=filepath)
+
+        # deletes the file
         s3.delete_object(Bucket=bucket_name, Key=filepath)
 
     except ClientError as e:
+        if e.response['ResponseMetadata']['HTTPStatusCode'] == 404:
+            return create_response(status_code=404, message="File does not exist.")
         logging.debug(e)
         return create_response(status_code=400, message=str(e))
 

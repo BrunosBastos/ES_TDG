@@ -45,3 +45,7 @@ jobs:
       run: |
         cd TemplateFillingService/src/
         pytest
+    - name: Test MetricsService
+      run: |
+        cd MetricsService/
+        pytest
