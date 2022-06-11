@@ -32,9 +32,9 @@ async def get_templates(file_type: str = '', s3=Depends(get_client_s3)) -> JSONR
     prefix = ''
     if file_type in ('filled', 'template'):
         prefix = file_type + '/'
+    else:
+        return create_response(status_code=400, message="Value of query parameter 'file_type' unrecognized.")
     try:
-        print(prefix)
-        logging.debug(prefix)
         file_contents = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)["Contents"]
 
         response_data = []
