@@ -51,6 +51,10 @@ def get_metric_s3(namespace, metricname, storageType, client):
 
 def lambda_handler(event, context):
 
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
     if event["requestContext"]["http"]["sourceIp"] == "18.215.185.124":
 
         path = event["rawPath"].split("/")
@@ -61,6 +65,7 @@ def lambda_handler(event, context):
             client = boto3.client('cloudwatch', region_name='us-east-1')
             return {
                 'statusCode': 200,
+                'headers': headers,
                 'body': json.dumps(get_metric_ec2(namespace, metricname, client), default=str)
             }
         else:
@@ -68,11 +73,13 @@ def lambda_handler(event, context):
             storageType = path[3]
             return {
                 'statusCode': 200,
+                'headers': headers,
                 'body': json.dumps(get_metric_s3(namespace, metricname, storageType, client), default=str)
             }
 
     else:
         return {
             'statusCode': 403,
+            'headers': headers,
             'body': json.dumps("Access denied")
         }
