@@ -1,16 +1,16 @@
 import { Link as RouterLink } from 'react-router-dom';
+import React from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography } from '@mui/material';
+import { Card, Link, Container, Typography, Button, TextField } from '@mui/material';
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
 import Page from '../components/Page';
 import Logo from '../components/Logo';
-// sections
-import { LoginForm } from '../sections/auth/login';
-import AuthSocial from '../sections/auth/AuthSocial';
 
+
+import useAuthStore from 'src/stores/AuthStore';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -57,7 +57,12 @@ const ContentStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Login() {
-  const smUp = useResponsive('up', 'sm');
+  
+  const [username, setUsername] = React.useState("");
+
+  const login = () => {
+    useAuthStore.getState().setToken(username);
+  }
 
   const mdUp = useResponsive('up', 'md');
 
@@ -66,15 +71,6 @@ export default function Login() {
       <RootStyle>
         <HeaderStyle>
           <Logo />
-
-          {smUp && (
-            <Typography variant="body2" sx={{ mt: { md: -2 } }}>
-              Don’t have an account? {''}
-              <Link variant="subtitle2" component={RouterLink} to="/register">
-                Get started
-              </Link>
-            </Typography>
-          )}
         </HeaderStyle>
 
         {mdUp && (
@@ -89,23 +85,13 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
-              Sign in to Minimal
+              Sign in
             </Typography>
 
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
 
-            <AuthSocial />
-
-            <LoginForm />
-
-            {!smUp && (
-              <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-                Don’t have an account?{' '}
-                <Link variant="subtitle2" component={RouterLink} to="/register">
-                  Get started
-                </Link>
-              </Typography>
-            )}
+            <TextField style={{marginBottom: 15}} value={username} onChange={(e) => setUsername(e.target.value)} id="username" label="Username" variant="outlined" />
+              <Button variant="contained" onClick={login} size="large">Enter</Button>
           </ContentStyle>
         </Container>
       </RootStyle>
