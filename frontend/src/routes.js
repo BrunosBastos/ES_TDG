@@ -21,7 +21,15 @@ const Element = ({as, include}) => {
 
 }
 
-export default function Router() {
+export default function Router(props) {
+  if (!props.token) {
+    return useRoutes([
+      {
+        path: "*", element: <Login />
+      }
+    ])
+  }
+
   return useRoutes([
     {
       path: '/dashboard',

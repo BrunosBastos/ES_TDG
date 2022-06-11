@@ -36,6 +36,7 @@ import Searchbar from 'src/components/Searchbar';
 import FileService from 'src/services/FileService';
 //
 import { config } from 'src/consts';
+import useAuthStore from 'src/stores/AuthStore';
 
 const service = FileService.getInstance();
 
