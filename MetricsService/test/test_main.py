@@ -30,9 +30,8 @@ def test_s3_metrics():
     )
 
     event = dict()
-    event["requestContext"] = dict()
-    event["requestContext"]["http"] = dict()
-    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124"
+    event["headers"] = dict()
+    event["headers"]["referer"] = "18.215.185.124"
     event["rawPath"] = "/S3/NumberOfObjects/AllStorageTypes"
 
     response = lambda_handler(event, None)
@@ -66,8 +65,8 @@ def test_ec2_metrics():
 
     event = dict()
     event["requestContext"] = dict()
-    event["requestContext"]["http"] = dict()
-    event["requestContext"]["http"]["sourceIp"] = "18.215.185.124"
+    event["headers"] = dict()
+    event["headers"]["referer"] = "18.215.185.124"
     event["rawPath"] = "/EC2/NetworkIn"
 
     response = lambda_handler(event, None)
