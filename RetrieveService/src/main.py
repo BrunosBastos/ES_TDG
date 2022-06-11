@@ -34,9 +34,8 @@ async def get_templates(s3=Depends(get_client_s3)) -> JSONResponse:
 
         response_data = []
         for f in file_contents:
-            if len(f['Key'].split("/")) > 1:   # TODO: change this when all the file are deleted
-                file_type, file_format, filename = f['Key'].split("/")
-                response_data.append({'name': filename, 'type': file_type, 'format': file_format, 'size': f['Size']})
+            file_type, file_format, filename = f['Key'].split("/")
+            response_data.append({'name': filename, 'type': file_type, 'format': file_format, 'size': f['Size']})
 
         return create_response(status_code=200, data=response_data)
     except ClientError as e:
@@ -73,4 +72,4 @@ def download_template(
                             filename=file_name)
     except ClientError as e:
         logging.debug(e)
-        return create_response(status_code=400, message=str(e))
+        return create_response(status_code=404, message="File not found")
