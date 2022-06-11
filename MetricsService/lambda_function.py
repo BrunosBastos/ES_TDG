@@ -3,15 +3,15 @@ import boto3
 from datetime import datetime
 
 
-#get ec2 metrics
+# get ec2 metrics
 def get_metric_ec2(namespace, metricname, client):
     response = client.get_metric_statistics(
-            Namespace=namespace, 
-            MetricName=metricname,  
+            Namespace=namespace,
+            MetricName=metricname,
             Dimensions=[
                 {
-                    'Name':'InstanceId',
-                    'Value':'i-092988b42c6dea77e'
+                    'Name': 'InstanceId',
+                    'Value': 'i-092988b42c6dea77e'
                 }
             ],
             StartTime=datetime(2022, 5, 21),
@@ -24,7 +24,7 @@ def get_metric_ec2(namespace, metricname, client):
     return response
 
 
-#get s3  metrics
+# get s3  metrics
 def get_metric_s3(namespace, metricname, storageType, client):
     response = client.get_metric_statistics(
             Namespace=namespace,
@@ -35,7 +35,7 @@ def get_metric_s3(namespace, metricname, storageType, client):
                     'Value': storageType
                 },
                 {
-                    'Name': 'BucketName' ,
+                    'Name': 'BucketName',
                     'Value': 'tdg-s3-bucket'
                 }
             ],
@@ -55,11 +55,11 @@ def lambda_handler(event, context):
         'Access-Control-Allow-Origin': '*'
     }
 
-    if "headers" in event and  "referer" in event["headers"] and  "18.215.185.124" in event["headers"]["referer"]:
+    if "headers" in event and "referer" in event["headers"] and "18.215.185.124" in event["headers"]["referer"]:
 
-        path= event["rawPath"].split("/")
+        path = event["rawPath"].split("/")
         namespace = "AWS/" + path[1]
-        metricname= path[2]
+        metricname = path[2]
 
         if namespace == "AWS/EC2":
             client = boto3.client('cloudwatch', region_name='us-east-1')
@@ -77,7 +77,6 @@ def lambda_handler(event, context):
                 'body': json.dumps(get_metric_s3(namespace, metricname, storageType, client), default=str)
             }
 
-        
     else:
         return {
             'statusCode': 403,
