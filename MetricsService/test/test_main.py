@@ -29,7 +29,6 @@ def test_s3_metrics():
         MetricData=[dict(MetricName="NumberOfObjects", Value=1.5, Dimensions=dim)]
     )
 
-
     event = dict()
     event["requestContext"] = dict()
     event["requestContext"]["http"] = dict()

@@ -24,7 +24,7 @@ def get_metric_ec2(namespace, metricname, client):
     return response
 
 
-# Get metrics from S3 bucket  
+# Get metrics from S3 bucket
 def get_metric_s3(namespace, metricname, storageType, client):
     response = client.get_metric_statistics(
             Namespace=namespace,
@@ -52,13 +52,13 @@ def get_metric_s3(namespace, metricname, storageType, client):
 def lambda_handler(event, context):
 
     if event["requestContext"]["http"]["sourceIp"] == "18.215.185.124":
- 
+
         path = event["rawPath"].split("/")
         namespace = "AWS/" + path[1]
         metricname = path[2]
-        
+
         if namespace == "AWS/EC2":
-            client = boto3.client('cloudwatch',region_name='us-east-1')
+            client = boto3.client('cloudwatch', region_name='us-east-1')
             return {
                 'statusCode': 200,
                 'body': json.dumps(get_metric_ec2(namespace, metricname, client), default=str)
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
                 'statusCode': 200,
                 'body': json.dumps(get_metric_s3(namespace, metricname, storageType, client), default=str)
             }
- 
+
     else:
         return {
             'statusCode': 403,
