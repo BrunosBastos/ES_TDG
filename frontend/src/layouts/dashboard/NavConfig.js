@@ -16,6 +16,11 @@ const navConfig = [
     title: 'show files',
     path: '/dashboard/files',
     icon: getIcon('eva:shopping-bag-fill'),
+  },
+  {
+    title: 'help',
+    path: '/dashboard/help',
+    icon: getIcon('bx:help-circle'),
   }
 ].concat(!config.SHOW_TEMPLATE ? [] : [
   {

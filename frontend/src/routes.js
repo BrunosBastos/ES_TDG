@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 import ShowFiles from './pages/ShowFiles';
+import Help from './pages/Help';
 
 
 // ----------------------------------------------------------------------
@@ -29,6 +30,7 @@ export default function Router() {
       children: [
         { path: 'app', element: <DashboardApp /> },
         { path: 'files', element: <ShowFiles />},
+        { path: 'help', element: <Help />},
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
