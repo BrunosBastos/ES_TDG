@@ -31,7 +31,7 @@ def get_metric_s3(namespace, metricname, storageType, client):
             MetricName=metricname,
             Dimensions=[
                 {
-                    'Name':'StorageType',
+                    'Name': 'StorageType',
                     'Value': storageType
                 },
                 {
