@@ -57,6 +57,17 @@ class FileService {
             method: "DELETE",
         })
     }
+
+    async downloadFile(path) {
+        return fetch(config.API_URL + "/2/files/" + path, {
+            headers: {
+                "username": useAuthStore.getState().token
+            },
+            mode: "cors",
+            method: "GET"
+        })
+    }
+
 }
 
 export default FileService;

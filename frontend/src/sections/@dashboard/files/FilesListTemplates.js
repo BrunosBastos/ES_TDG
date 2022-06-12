@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 import { toast } from 'react-toastify';
 // material
 import {
@@ -38,8 +38,6 @@ import FileService from 'src/services/FileService';
 import word from 'src/assets/word.svg';
 import excel from 'src/assets/excel.svg';
 import powerpoint from 'src/assets/powerpoint.svg';
-import { config } from 'src/consts';
-import useAuthStore from 'src/stores/AuthStore';
 
 const service = FileService.getInstance();
 
@@ -55,6 +53,8 @@ export default function FilesListTemplates() {
     const [search, setSearch] = useState("");
     const [fileFormat, setFileFormat] = useState("");
     const [fileType, setFileType] = useState("");
+
+    const link = createRef();
 
     const handleClickOpen = (templateType, templateFormat, templateName, fill) => {
         setSelected(templateType + "/" + templateFormat + "/" + templateName);
@@ -139,6 +139,26 @@ export default function FilesListTemplates() {
 
         handleClose();
     };
+
+    /**
+     * Checks if user can download by requesting the API. 
+     * Then the user is authenticated it returns a blob with the file.
+     * @param {*} path  Path to the file 
+     */
+    const downloadFile = (path) => {
+
+        service.downloadFile(path)
+            .then((res) => res.blob())
+            .then((blob) => {
+                const href = window.URL.createObjectURL(blob);
+    
+                link.current.download = path.split("/").slice(-1).pop();
+                link.current.href = href;
+                
+                link.current.click();
+            })
+    }
+
 
     /**
      * Takes a string as input and returns the first letter as uppercase
@@ -271,7 +291,7 @@ export default function FilesListTemplates() {
                                                 }
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <IconButton color="primary" component="a" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
+                                                <IconButton color="primary" onClick={() => downloadFile(row.type + "/" + row.format + "/" + row.name)} >
                                                     <DownloadIcon />
                                                 </IconButton>
                                             </TableCell>
@@ -287,6 +307,8 @@ export default function FilesListTemplates() {
                         </TableContainer>
                 }
             </Box>
+            <a style={{display: 'none'}} ref={link}></a>
+
             <Dialog open={open} onClose={handleClose}>
                 {openFill ?
                     <>
