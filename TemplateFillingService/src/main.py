@@ -83,24 +83,7 @@ async def post_template(
         if not output_filename.endswith("." + file_extension):
             output_filename += "." + file_extension
 
-        filling_error = False
-
-        # fill excel template
-        if file_extension == "xlsx":
-            filling_error = not fill_excel_template(
-                t_filename, data, output_filename)
-
-        # fill pptx template
-        elif file_extension == "pptx" or file_extension == "ppt":
-            filling_error = not fill_ppt_template(
-                t_filename, data, output_filename)
-
-        # fill pptx template
-        elif file_extension == "docx":
-            filling_error = not fill_docx_template(
-                t_filename, data, output_filename)
-
-        if filling_error:
+        if not fill_template(file_extension, t_filename, data, output_filename):
             return create_response(status_code=400,
                                    message="Could not fill template it the provided data." +
                                    "Check if the file matches the requirements.")
@@ -116,6 +99,40 @@ async def post_template(
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=e)
+
+
+def fill_template(file_extension, t_filename, data, output_filename):
+    """
+    Chooses the right function to handle the template filling task.
+
+    Parameters
+    ----------
+        file_extension : `str`
+            The extension of the file
+        t_filename : `str`
+            Name of the template
+        data : `json`
+            Json data already converted to a dict
+        output_filename : `str`
+            Name of the resulting file
+
+    Returns
+    -------
+        valid : `bool`
+            True if there is no error, else False
+    """
+
+    # fill excel template
+    if file_extension == "xlsx":
+        return fill_excel_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "pptx" or file_extension == "ppt":
+        return fill_ppt_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "docx":
+        return fill_docx_template(t_filename, data, output_filename)
 
 
 def fill_excel_template(template_name, data, filled_file_name):
