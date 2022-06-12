@@ -11,7 +11,7 @@ import {
 
 export default function DashboardApp() {
   return (
-    <Page title="Dashboard">
+    <Page title="Show Files">
       <Container maxWidth="xl">
         <Typography variant="h4" sx={{ mb: 5 }}>
           Show Files
