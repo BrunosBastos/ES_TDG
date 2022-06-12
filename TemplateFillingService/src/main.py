@@ -1,7 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, Depends, Form
+from fastapi import FastAPI, UploadFile, File, Depends, Form, Header
 from fastapi.responses import JSONResponse
 from pptx import Presentation
 from botocore.exceptions import ClientError
+from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
 import logging
 import openpyxl as oxl
@@ -9,6 +10,7 @@ import json
 import re
 from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
 import docx
+from typing import Optional
 
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
@@ -19,12 +21,21 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/api/3/fill")
 async def post_template(
         upload_file: UploadFile = File(...),
         retrieval_filename: str = Form(),
         output_filename: str = Form(),
+        username: Optional[str] = Header(None),
         s3=Depends(get_client_s3)
 ) -> JSONResponse:
     """
@@ -49,7 +60,12 @@ async def post_template(
     """
     try:
 
+        if not username:
+            return create_response(status_code=401, message="Not authenticated.")
+
         _, t_format, t_filename = retrieval_filename.split("/")
+
+        retrieval_filename = username + "/" + retrieval_filename
 
         try:
             # load json data
@@ -89,7 +105,7 @@ async def post_template(
                                    message="Could not fill template it the provided data." +
                                    "Check if the file matches the requirements.")
 
-        path = "filled/" + t_format + "/" + output_filename
+        path = username + "/filled/" + t_format + "/" + output_filename
 
         s3.upload_fileobj(
             open(output_filename, "rb"), bucket_name, path

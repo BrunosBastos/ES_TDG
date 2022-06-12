@@ -24,7 +24,8 @@ def test_files_valid_file_extension(tmpdir):
 
         with open(doc, "rb") as file:
             response = test_app.post(
-                "/api/1/files", files={"upload_file": file}, data={"filename": "test"}
+                "/api/1/files", files={"upload_file": file}, data={"filename": "test"},
+                headers={"username": "test"}
             )
 
         assert response.status_code == 200
@@ -42,6 +43,8 @@ def test_files_correct_upload_directory(tmpdir):
     """
     for format, extension in [("powerpoint", "pptx"), ("word", "docx"), ("excel", "xlsx")]:
 
+        user = "test"
+
         filename = "test"
         doc = tmpdir.join("hello." + extension)
         doc.write("content")
@@ -50,7 +53,7 @@ def test_files_correct_upload_directory(tmpdir):
         conn.create_bucket(Bucket='tdg-s3-bucket')
 
         s3 = boto3.client('s3')
-        prefix = "template/" + format
+        prefix = user + "/template/" + format
         path = prefix + "/" + filename + "." + extension
 
         response_obj = s3.list_objects_v2(Bucket='tdg-s3-bucket', Prefix=prefix)
@@ -58,7 +61,8 @@ def test_files_correct_upload_directory(tmpdir):
 
         with open(doc, "rb") as file:
             response = test_app.post(
-                "/api/1/files", files={"upload_file": file}, data={"filename": filename}
+                "/api/1/files", files={"upload_file": file}, data={"filename": filename},
+                headers={"username": user}
             )
 
         response_obj = s3.list_objects_v2(Bucket='tdg-s3-bucket', Prefix=prefix)
@@ -78,6 +82,8 @@ def test_files_override_file(tmpdir):
     """
     for format, extension in [("powerpoint", "pptx"), ("word", "docx"), ("excel", "xlsx")]:
 
+        user = "test"
+
         filename = "test"
         doc = tmpdir.join("hello." + extension)
         doc.write("content")
@@ -86,12 +92,13 @@ def test_files_override_file(tmpdir):
         conn.create_bucket(Bucket='tdg-s3-bucket')
 
         s3 = boto3.client('s3')
-        path = "template/" + format + "/" + filename + "." + extension
+        path = user + "/template/" + format + "/" + filename + "." + extension
         s3.put_object(Bucket='tdg-s3-bucket', Key=path, Body="test")
 
         with open(doc, "rb") as file:
             response = test_app.post(
-                "/api/1/files", files={"upload_file": file}, data={"filename": filename}
+                "/api/1/files", files={"upload_file": file}, data={"filename": filename},
+                headers={"username": user}
             )
         assert response.status_code == 200
         assert response.headers["Access-Control-Allow-Origin"] == "*"
@@ -120,11 +127,35 @@ def test_files_invalid_extension(tmpdir):
 
     with open(doc, "rb") as file:
         response = test_app.post(
-            "/api/1/files", files={"upload_file": file}, data={"filename": filename}
+            "/api/1/files", files={"upload_file": file}, data={"filename": filename},
+            headers={"username": "test"}
         )
 
     assert response.status_code == 400
     assert "not supported" in response.json()["message"]
+
+
+@mock_s3
+def test_files_username_not_provided(tmpdir):
+    """
+    Given a file
+    When the user is not provided in the headers
+    Then the request must respond with status code of 401.
+    """
+
+    conn = boto3.resource('s3')
+    conn.create_bucket(Bucket='tdg-s3-bucket')
+
+    filename = "test"
+    doc = tmpdir.join("hello." + "docx")
+    doc.write("content")
+
+    with open(doc, "rb") as file:
+        response = test_app.post(
+            "/api/1/files", files={"upload_file": file}, data={"filename": filename}
+        )
+
+    assert response.status_code == 401
 
 
 @mock_s3
@@ -138,7 +169,8 @@ def test_files_delete_invalid_file():
     conn.create_bucket(Bucket='tdg-s3-bucket')
 
     response = test_app.delete(
-        "/api/1/files" + "/template/word/no_file.docx"
+        "/api/1/files" + "/template/word/no_file.docx",
+        headers={"username": "test"}
     )
 
     assert response.status_code == 404
@@ -152,17 +184,37 @@ def test_files_delete_existing_file():
     Then the file should be deleted and the response should have the code 200
     """
 
+    user = "test"
+
     conn = boto3.resource('s3')
     conn.create_bucket(Bucket='tdg-s3-bucket')
 
     s3 = boto3.client('s3')
-    path = "template/word/test.docx"
+    path = user + "/template/word/test.docx"
     s3.put_object(Bucket='tdg-s3-bucket', Key=path, Body="test")
 
     response = test_app.delete(
-        "/api/1/files" + "/template/word/test.docx"
+        "/api/1/files" + "/template/word/test.docx",
+        headers={"username": user}
     )
 
     assert response.status_code == 200
     response_obj = s3.list_objects_v2(Bucket='tdg-s3-bucket', Prefix=path)
     assert response_obj["KeyCount"] == 0
+
+
+@mock_s3
+def test_files_delete_user_not_provided():
+    """
+    Given a file to delete
+    When the user is not provided in the headers
+    Then the response should have the status code 401
+    """
+    conn = boto3.resource('s3')
+    conn.create_bucket(Bucket='tdg-s3-bucket')
+
+    response = test_app.delete(
+        "/api/1/files" + "/template/word/no_file.docx"
+    )
+
+    assert response.status_code == 401
