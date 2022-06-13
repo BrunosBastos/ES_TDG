@@ -20,6 +20,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - name: Stop compose
       run: |
         cd /home/ec2-user/ES_TDG/Docker
@@ -29,7 +31,7 @@ jobs:
         git pull origin dev
     - name: Docker prune
       run: |
-        docker system prune -a
+        docker system prune -a -f
     - name: Start compose
       run: |
         cd /home/ec2-user/ES_TDG/Docker

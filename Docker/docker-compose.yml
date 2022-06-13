@@ -1,21 +1,15 @@
 version: "3"
 services:
   api1:
-    build:
-      context: ../StoreService
-      dockerfile: ../Docker/Dockerfile.backend
+    image: ghcr.io/brunosbastos/es_tdg/store-service:latest
     ports: 
       - 8000:8000
   api2:
-    build:
-      context: ../RetrieveService
-      dockerfile: ../Docker/Dockerfile.backend
+    image: ghcr.io/brunosbastos/es_tdg/retrieve-service:latest
     ports: 
       - 8001:8000
   api3:
-    build:
-      context: ../TemplateFillingService
-      dockerfile: ../Docker/Dockerfile.backend
+    image: ghcr.io/brunosbastos/es_tdg/filling-service:latest
     ports: 
       - 8002:8000
   frontend:
