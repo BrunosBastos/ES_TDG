@@ -64,15 +64,18 @@ def test_fill_template_endpoint(
 
     s3 = boto3.client('s3')
 
-    path = "template/" + format + "/" + template_filename + "." + extension
-    path_filled = "filled/" + format + "/" + output_filename + "." + extension
+    user = "test"
 
-    s3.put_object(Bucket='tdg-s3-bucket', Key=path,
+    path = "template/" + format + "/" + template_filename + "." + extension
+    path_filled = user + "/filled/" + format + "/" + output_filename + "." + extension
+
+    s3.put_object(Bucket='tdg-s3-bucket', Key=user + "/" + path,
                   Body=open(test_path + template_filename, "rb"))
 
     response = test_app.post(
         "/api/3/fill", files={"upload_file": open(test_path + json_file, "rb")},
-        data={"retrieval_filename": path, "output_filename": output_filename}
+        data={"retrieval_filename": path, "output_filename": output_filename},
+        headers={"username": user}
     )
 
     assert response.status_code == status_code

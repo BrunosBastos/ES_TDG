@@ -1,7 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, Depends, Form
+from fastapi import FastAPI, UploadFile, File, Depends, Form, Header
 from fastapi.responses import JSONResponse
 from pptx import Presentation
 from botocore.exceptions import ClientError
+from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
 import logging
 import openpyxl as oxl
@@ -9,6 +10,7 @@ import json
 import re
 from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
 import docx
+from typing import Optional
 
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
@@ -19,12 +21,21 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/api/3/fill")
 async def post_template(
         upload_file: UploadFile = File(...),
         retrieval_filename: str = Form(),
         output_filename: str = Form(),
+        username: Optional[str] = Header(None),
         s3=Depends(get_client_s3)
 ) -> JSONResponse:
     """
@@ -49,7 +60,12 @@ async def post_template(
     """
     try:
 
+        if not username:
+            return create_response(status_code=401, message="Not authenticated.")
+
         _, t_format, t_filename = retrieval_filename.split("/")
+
+        retrieval_filename = username + "/" + retrieval_filename
 
         try:
             # load json data
@@ -67,29 +83,12 @@ async def post_template(
         if not output_filename.endswith("." + file_extension):
             output_filename += "." + file_extension
 
-        filling_error = False
-
-        # fill excel template
-        if file_extension == "xlsx":
-            filling_error = not fill_excel_template(
-                t_filename, data, output_filename)
-
-        # fill pptx template
-        elif file_extension == "pptx" or file_extension == "ppt":
-            filling_error = not fill_ppt_template(
-                t_filename, data, output_filename)
-
-        # fill pptx template
-        elif file_extension == "docx":
-            filling_error = not fill_docx_template(
-                t_filename, data, output_filename)
-
-        if filling_error:
+        if not fill_template(file_extension, t_filename, data, output_filename):
             return create_response(status_code=400,
                                    message="Could not fill template it the provided data." +
                                    "Check if the file matches the requirements.")
 
-        path = "filled/" + t_format + "/" + output_filename
+        path = username + "/filled/" + t_format + "/" + output_filename
 
         s3.upload_fileobj(
             open(output_filename, "rb"), bucket_name, path
@@ -100,6 +99,40 @@ async def post_template(
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=e)
+
+
+def fill_template(file_extension, t_filename, data, output_filename):
+    """
+    Chooses the right function to handle the template filling task.
+
+    Parameters
+    ----------
+        file_extension : `str`
+            The extension of the file
+        t_filename : `str`
+            Name of the template
+        data : `json`
+            Json data already converted to a dict
+        output_filename : `str`
+            Name of the resulting file
+
+    Returns
+    -------
+        valid : `bool`
+            True if there is no error, else False
+    """
+
+    # fill excel template
+    if file_extension == "xlsx":
+        return fill_excel_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "pptx" or file_extension == "ppt":
+        return fill_ppt_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "docx":
+        return fill_docx_template(t_filename, data, output_filename)
 
 
 def fill_excel_template(template_name, data, filled_file_name):
