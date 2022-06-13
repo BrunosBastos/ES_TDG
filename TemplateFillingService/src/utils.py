@@ -1,6 +1,8 @@
 import boto3
 from fastapi.responses import JSONResponse
 import copy
+import re
+from bs4 import BeautifulSoup
 
 
 def get_client_s3() -> boto3.client:
@@ -86,7 +88,8 @@ def _get_blank_slide_layout(pres):
         SlideLayout
             The presentation blank layout
     """
-    layout_items_count = [len(layout.placeholders) for layout in pres.slide_layouts]
+    layout_items_count = [len(layout.placeholders)
+                          for layout in pres.slide_layouts]
     min_items = min(layout_items_count)
     blank_layout_id = layout_items_count.index(min_items)
 
@@ -120,3 +123,86 @@ def duplicate_slide(pres, index):
         dest.shapes._spTree.insert_element_before(newel, 'p:extLst')
 
     return dest
+
+
+def delete_paragraph(paragraph):
+    """
+    Deletes a paragraph from a Word document
+
+    Parameters
+    ----------
+        paragraph : `Paragraph`
+            The paragraph to delete
+    """
+    p = paragraph._element
+    p.getparent().remove(p)
+    p._p = p._element = None
+
+
+def insert_paragraph(document, index, text, style):
+    """
+    Inserts the paragraph at a given position
+
+    Parameters
+    ----------
+        document : `Document`
+            A word document object
+        index : `int`
+            The index where to insert the paragraph
+        text : `str`
+            The text of the new inserted paragraph
+    """
+    document.paragraphs[index].insert_paragraph_before(text, style)
+
+
+def fill_paragraph(global_data, local_data, paragraph):
+    """
+    Fills the paragraph with the data provided
+
+    Parameters
+    ----------
+        global_data : `dict`
+            The global json data
+        local_data : `Any`
+            The local json data, comes from a list
+        paragraph : `str`
+            The paragraph text
+
+    Returns
+    -------
+        text : `str`
+            The resulting paragraph text
+    """
+    value_regex = re.compile(r"\$\{\w+}")
+    list_value_regex = re.compile(r"\$\{\.\w+}")
+
+    if x := re.search(value_regex, paragraph):
+        replace = x.group(0)[2:-1]
+
+        # it's just a string
+        if isinstance(global_data[replace], str):
+            paragraph = paragraph.replace(
+                x.group(0), global_data[replace])
+
+        # it's an object
+        elif isinstance(global_data[replace], dict):
+
+            # if type isn't html
+            if global_data[replace]["type"] != "html":
+                paragraph = paragraph.replace(
+                    x.group(0), global_data[replace]["value"])
+
+            # if type is html
+            else:
+                html = BeautifulSoup(
+                    global_data[replace]["value"], "html.parser")
+                paragraph = paragraph.replace(
+                    x.group(0), html.prettify())
+
+    if local_data:
+        if x := re.search(list_value_regex, paragraph):
+            replace = x.group(0)[3:-1]
+            paragraph = paragraph.replace(
+                x.group(0), local_data[replace])
+
+    return paragraph
