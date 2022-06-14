@@ -139,7 +139,7 @@ def delete_paragraph(paragraph):
     p._p = p._element = None
 
 
-def insert_paragraph(document, index, text, style):
+def insert_paragraph(document, index, text):
     """
     Inserts the paragraph at a given position
 
@@ -152,7 +152,7 @@ def insert_paragraph(document, index, text, style):
         text : `str`
             The text of the new inserted paragraph
     """
-    document.paragraphs[index].insert_paragraph_before(text, style)
+    document.paragraphs[index].insert_paragraph_before(text)
 
 
 def fill_paragraph(global_data, local_data, paragraph):
@@ -186,7 +186,6 @@ def fill_paragraph(global_data, local_data, paragraph):
 
         # it's an object
         elif isinstance(global_data[replace], dict):
-
             # if type isn't html
             if global_data[replace]["type"] != "html":
                 paragraph = paragraph.replace(

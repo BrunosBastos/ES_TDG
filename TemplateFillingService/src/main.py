@@ -219,42 +219,48 @@ def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
         # stores the paragraphs that are inside a list
         lst_paragraphs = []
         del_paragraphs = []
+        idx_counter = 0
 
         for pi, paragraph in enumerate(document.paragraphs):
 
             local_data = None
             if in_list:
                 local_data = data[in_object_name][0]
-                lst_paragraphs.append(paragraph)
+                lst_paragraphs.append(paragraph.text)
 
             paragraph.text = fill_paragraph(data, local_data, paragraph.text)
 
             # find's the beginning of a list
             if x := re.search(begin_list_regex, paragraph.text):
                 in_object_name = x.string[3:-1]
+                print(in_object_name)
                 in_list = True
                 del_paragraphs.append(paragraph)
 
             # find's the end of a list
             if x := re.search(end_list_regex, paragraph.text):
+                print(in_object_name)
 
                 del_paragraphs.append(paragraph)
                 lst_paragraphs.pop()        # remove the last value because its the closing tag
 
                 for value in data[in_object_name][1:]:
-                    for p in lst_paragraphs[::-1]:
+                    for p in lst_paragraphs:
                         insert_paragraph(
                             document,
-                            pi,
-                            fill_paragraph(data, value, p.text),
-                            p.style
+                            pi + idx_counter,
+                            fill_paragraph(data, value, p),
                         )
+                        idx_counter += 1
                 in_object_name = None
                 in_list = False
+                lst_paragraphs.clear()
 
         # deletes the unused paragraphs
         for p in del_paragraphs:
             delete_paragraph(p)
+
+        del_paragraphs = []
 
         # iterate through tables in document
         # find json table names to iterate through
