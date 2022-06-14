@@ -61,10 +61,65 @@ export default function HelpTemplates() {
           <Typography sx={{ color: 'text.secondary' }}>See JSON and xlsx file specifications</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Nulla facilisi. Phasellus sollicitudin nulla et quam mattis feugiat.
-            Aliquam eget maximus est, id dignissim quam.
-          </Typography>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    Excel templates
+                </Typography>
+                <Typography >
+                    Excel templates are the simplest ones. You can upload as template any .xlsx file. 
+                </Typography>
+                <Typography >
+                    Our algorithm supports multiple spreadsheets!
+                </Typography>
+                <Typography >
+                    Check for a template example below!
+                </Typography>
+            </Box>
+            <Divider variant="middle"/>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    JSON file
+                </Typography>
+                <Typography >
+                    In order to fill a excel template it is needed to pass a JSON file which must be written following certain rules:
+                </Typography>
+                <List>
+                    <ListItem >
+                      <Typography >
+                        1- The root of the JSON file should be an array. Each elemment of the array will refer to a spreadsheet.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        2- Each spreadsheet consists on a object with the spreadsheet name as key and an array as value.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        3- The array contains the cells data. Each cell is an elemment of the array with the key being the cell position &#40;A2, B10, AA7, etc&#41; and the value the cell's value after filling.
+                      </Typography>
+                    </ListItem>
+                </List>  
+                <Typography >
+                    Check for a template example below!
+                </Typography>        
+            </Box>
+            <Divider variant="middle"/>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    Examples
+                </Typography>      
+                
+                <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/template.xlsx', expanded === 'panel1')} >
+                    <Typography >Template file</Typography>
+                </Button> 
+                <Button sx={{ my: 3, mx: 2 }}color="primary" variant="outlined"  onClick={() => downloadFile('/static/xlsx.json', expanded === 'panel1')} >
+                    <Typography >JSON file</Typography>
+                </Button> 
+                <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/filled.xlsx', expanded === 'panel1')} >
+                    <Typography >Filled file</Typography>
+                </Button> 
+            </Box>
         </AccordionDetails>
       </Accordion>
       <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
@@ -84,11 +139,15 @@ export default function HelpTemplates() {
                     Powerpoint template
                 </Typography>
                 <Typography >
-                    Powerpoint templates consist on a single slide with variables declared as text. <p></p>
+                    Powerpoint templates consist on a single slide with variables declared as text.
+                </Typography>
+                <Typography > 
                     When filling the template our algorithm will replace those variables with the respective content declared in the JSON file.
                 </Typography>
                 <Typography >
-                    Variables are written using the following syntax: &#123;VARIABLE_NAME&#125;<p></p>
+                    Variables are written using the following syntax: &#123;VARIABLE_NAME&#125;
+                </Typography>
+                <Typography >
                     Check for a template example below!
                 </Typography>
             </Box>
@@ -116,7 +175,10 @@ export default function HelpTemplates() {
                         3- The key corresponds to the variable name in the powerpoint and it will be replaced by the corresponding value.
                       </Typography>
                     </ListItem>
-                </List>          
+                </List>   
+                <Typography >
+                    Check for a JSON example below!
+                </Typography>       
             </Box>
             <Divider variant="middle"/>
             <Box sx={{ my: 3, mx: 2 }}>
@@ -127,7 +189,7 @@ export default function HelpTemplates() {
                 <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/template.pptx', expanded === 'panel2')} >
                     <Typography >Template file</Typography>
                 </Button> 
-                <Button sx={{ my: 3, mx: 2 }}color="primary" variant="outlined"  onClick={() => downloadFile('/static/pptx,json', expanded === 'panel2')} >
+                <Button sx={{ my: 3, mx: 2 }}color="primary" variant="outlined"  onClick={() => downloadFile('/static/pptx.json', expanded === 'panel2')} >
                     <Typography >JSON file</Typography>
                 </Button> 
                 <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/filled.pptx', expanded === 'panel2')} >
@@ -150,10 +212,65 @@ export default function HelpTemplates() {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Nunc vitae orci ultricies, auctor nunc in, volutpat nisl. Integer sit
-            amet egestas eros, vitae egestas augue. Duis vel est augue.
-          </Typography>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    Word templates
+                </Typography>
+                <Typography >
+                    Excel templates are the simplest ones. You can upload as template any .xlsx file. 
+                </Typography>
+                <Typography >
+                    Our algorithm supports multiple spreadsheets!
+                </Typography>
+                <Typography >
+                    Check for a template example below!
+                </Typography>
+            </Box>
+            <Divider variant="middle"/>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    JSON file
+                </Typography>
+                <Typography >
+                    In order to fill a docx template it is needed to pass a JSON file which must be written following certain rules:
+                </Typography>
+                <List>
+                    <ListItem >
+                      <Typography >
+                        1- The root of the JSON file should be an array. Each elemment of the array will refer to a spreadsheet.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        2- Each spreadsheet consists on a object with the spreadsheet name as key and an array as value.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        3- The array contains the cells data. Each cell is an elemment of the array with the key being the cell position &#40;A2, B10, AA7, etc&#41; and the value the cell's value after filling.
+                      </Typography>
+                    </ListItem>
+                </List>  
+                <Typography >
+                    Check for a template example below!
+                </Typography>        
+            </Box>
+            <Divider variant="middle"/>
+            <Box sx={{ my: 3, mx: 2 }}>
+                <Typography variant="h6">
+                    Examples
+                </Typography>      
+                
+                <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/template.docx', expanded === 'panel3')} >
+                    <Typography >Template file</Typography>
+                </Button> 
+                <Button sx={{ my: 3, mx: 2 }}color="primary" variant="outlined"  onClick={() => downloadFile('/static/docx.json', expanded === 'panel3')} >
+                    <Typography >JSON file</Typography>
+                </Button> 
+                <Button sx={{ my: 3, mx: 2 }} color="primary" variant="outlined"  onClick={() => downloadFile('/static/filled.docx', expanded === 'panel3')} >
+                    <Typography >Filled file</Typography>
+                </Button> 
+            </Box>
         </AccordionDetails>
       </Accordion>
     </div>
