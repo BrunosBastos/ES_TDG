@@ -7,7 +7,7 @@ import os
 
 class TestUpload():
     def setup_method(self):
-        self.driver = webdriver.Chrome('frontend/chromedriver')
+        self.driver = webdriver.Chrome('../../chromedriver')
         self.vars = {}
 
     def teardown_method(self):
