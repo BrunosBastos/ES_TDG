@@ -217,11 +217,31 @@ export default function HelpTemplates() {
                     Word templates
                 </Typography>
                 <Typography >
-                    Excel templates are the simplest ones. You can upload as template any .xlsx file. 
+                    Word algorithm supports multiple variable types: 
                 </Typography>
-                <Typography >
-                    Our algorithm supports multiple spreadsheets!
-                </Typography>
+                <List>
+                    <ListItem >
+                      <Typography >
+                        - Single variables, string or html, $&#123;VARIABLE_NAME&#125;
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        - Lists start with $&#123;#VARIABLE_NAME&#125; and end with $&#123;VARIABLE_NAME#&#125;
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                     <Typography >
+                       - The list contents can be accessed using $&#123;.ATTRIBUTE_NAME&#125; 
+                      </Typography> 
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        - Tables $&#123;#VARIABLE_NAME&#125; in the first and last columns  with the content of the cells being $&#123;.ATTRIBUTE_NAME&#125;
+                      </Typography>
+                    </ListItem>
+                </List>  
+               
                 <Typography >
                     Check for a template example below!
                 </Typography>
@@ -237,17 +257,27 @@ export default function HelpTemplates() {
                 <List>
                     <ListItem >
                       <Typography >
-                        1- The root of the JSON file should be an array. Each elemment of the array will refer to a spreadsheet.
+                        1- The JSON starts as an object;
                       </Typography>
                     </ListItem>
                     <ListItem >
                       <Typography >
-                        2- Each spreadsheet consists on a object with the spreadsheet name as key and an array as value.
+                        2- A simple variable has a key and the string value.
                       </Typography>
                     </ListItem>
                     <ListItem >
                       <Typography >
-                        3- The array contains the cells data. Each cell is an elemment of the array with the key being the cell position &#40;A2, B10, AA7, etc&#41; and the value the cell's value after filling.
+                        3- Variables can also be objects with the "type" key and "value" key. Type can be string or html and the value is what is displayed.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        4- Lists are object arrays where each object can have multiple keys which will function as a attribute names.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        5- Tables use the same syntax as lists.
                       </Typography>
                     </ListItem>
                 </List>  
