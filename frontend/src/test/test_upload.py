@@ -45,7 +45,7 @@ class TestUpload():
         actions.move_to_element(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".MuiInput-input").send_keys("test_up_xlsx")
 
-        time.sleep(2)
+        time.sleep(7)
 
         assert self.driver.find_element_by_xpath("//*[contains(text(), 'test_up_xlsx.xlsx')]").text == "test_up_xlsx.xlsx"
 

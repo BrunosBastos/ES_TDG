@@ -21,7 +21,7 @@ class TestTestlogin():
         actions.move_to_element(element).perform()
         self.driver.find_element(By.ID, "username").send_keys("test_user")
 
-        time.sleep(1)
+        time.sleep(7)
         assert self.driver.find_element(By.CSS_SELECTOR, ".MuiButton-root")
 
         self.driver.find_element(By.CSS_SELECTOR, ".MuiButton-root").click()

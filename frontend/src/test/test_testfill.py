@@ -24,14 +24,14 @@ class TestTestfill():
         tabs = self.driver.find_elements(By.CLASS_NAME, "css-1tsvksn")
         tabs[1].click()
 
-        time.sleep(1)
+        time.sleep(7)
 
         # SEARCH
         element = self.driver.find_element(By.CLASS_NAME, "css-jgzo53")
         actions = ActionChains(self.driver)
         actions.move_to_element(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".MuiInput-input").send_keys("test_up_xlsx")
-        time.sleep(1)
+        time.sleep(7)
 
         # FILL
         self.driver.find_element(By.CLASS_NAME, "css-3ui2fi").click()
@@ -56,7 +56,7 @@ class TestTestfill():
         actions = ActionChains(self.driver)
         actions.move_to_element(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".MuiInput-input").send_keys("test_fill.xlsx")
-        time.sleep(2)
+        time.sleep(7)
 
         # DOWNLOAD
         self.driver.find_element(By.CLASS_NAME, "css-1h0bc1a").click()
