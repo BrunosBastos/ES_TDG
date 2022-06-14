@@ -11,6 +11,8 @@ import {
     AccordionDetails,
     Typography,
     Divider,
+    List,
+    ListItem,
     IconButton,
     Box,
     Button,
@@ -86,7 +88,8 @@ export default function HelpTemplates() {
                     When filling the template our algorithm will replace those variables with the respective content declared in the JSON file.
                 </Typography>
                 <Typography >
-                    Variables are written using the following syntax: &#123;VARIABLE_NAME&#125;
+                    Variables are written using the following syntax: &#123;VARIABLE_NAME&#125;<p></p>
+                    Check for a template example below!
                 </Typography>
             </Box>
             <Divider variant="middle"/>
@@ -95,8 +98,25 @@ export default function HelpTemplates() {
                     JSON file
                 </Typography>
                 <Typography >
-                    In order to fill a template it is needed to pass a JSON file which must be written following certain rules.
+                    In order to fill a powerpoint template it is needed to pass a JSON file which must be written following certain rules:
                 </Typography>
+                <List>
+                    <ListItem >
+                      <Typography >
+                        1- The root of the JSON file should consist of an array with key "records".
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        2- Each record consists on a dictionary with one or more key/value pairs. A new slide will be created for each record.
+                      </Typography>
+                    </ListItem>
+                    <ListItem >
+                      <Typography >
+                        3- The key corresponds to the variable name in the powerpoint and it will be replaced by the corresponding value.
+                      </Typography>
+                    </ListItem>
+                </List>          
             </Box>
             <Divider variant="middle"/>
             <Box sx={{ my: 3, mx: 2 }}>
