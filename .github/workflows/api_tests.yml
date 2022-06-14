@@ -49,3 +49,8 @@ jobs:
       run: |
         cd MetricsService/
         pytest
+    - name: Frontend
+      run: |
+        cd frontend/src/test
+        python3 test.py
+
