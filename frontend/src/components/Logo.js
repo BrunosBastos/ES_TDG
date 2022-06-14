@@ -59,7 +59,7 @@ export default function Logo({ disabledLink = false, sx }) {
         </svg>
       </Box>
       <span style={{marginBottom: "2px"}}>
-      ethoataske
+      etaTemplate
       </span>
     </div>
   );
