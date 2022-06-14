@@ -3,12 +3,17 @@ from fastapi.responses import JSONResponse
 from pptx import Presentation
 from botocore.exceptions import ClientError
 from fastapi.middleware.cors import CORSMiddleware
-from bs4 import BeautifulSoup
 import logging
 import openpyxl as oxl
 import json
 import re
-from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
+from utils import create_response,    \
+                  delete_paragraph,   \
+                  get_client_s3,      \
+                  get_file_extension, \
+                  duplicate_slide,    \
+                  fill_paragraph,     \
+                  insert_paragraph
 import docx
 from typing import Optional
 
@@ -203,63 +208,59 @@ def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
         document = docx.Document(template_name)
 
         # regex
-        value_regex = re.compile(r"\$\{\w+}*")
         begin_list_regex = re.compile(r"\$\{#\w+}*")
         end_list_regex = re.compile(r"\$\{\w+#}*")
         list_value_regex = re.compile(r"\$\{\.\w+}*")
 
         # iterate through paragraphs in document
         in_list = False
-        in_list_index = 0
         in_object_name = None
 
-        for paragraph in document.paragraphs:
+        # stores the paragraphs that are inside a list
+        lst_paragraphs = []
+        del_paragraphs = []
+        idx_counter = 0
 
-            # it's not inside a list
-            if not in_list:
-                if x := re.search(value_regex, paragraph.text):
-                    replace = x.group(0)[2:-1]
+        for pi, paragraph in enumerate(document.paragraphs):
 
-                    # it's just a string
-                    if isinstance(data[replace], str):
-                        paragraph.text = paragraph.text.replace(
-                            x.group(0), data[replace])
-
-                    # it's an object
-                    elif isinstance(data[replace], dict):
-
-                        # if type isn't html
-                        if data[replace]["type"] != "html":
-                            paragraph.text = paragraph.text.replace(
-                                x.group(0), data[replace]["value"])
-
-                        # if type is html
-                        else:
-                            html = BeautifulSoup(
-                                data[replace]["value"], "html.parser")
-                            paragraph.text = paragraph.text.replace(
-                                x.group(0), html.prettify())
-
-            # it's inside a list
-            # lists only have values inside it
+            local_data = None
             if in_list:
-                if x := re.search(list_value_regex, paragraph.text):
-                    replace = x.group(0)[3:-1]
-                    paragraph.text = paragraph.text.replace(
-                        x.group(0), data[in_object_name][in_list_index][replace])
+                local_data = data[in_object_name][0]
+                lst_paragraphs.append(paragraph.text)
+
+            paragraph.text = fill_paragraph(data, local_data, paragraph.text)
 
             # find's the beginning of a list
             if x := re.search(begin_list_regex, paragraph.text):
                 in_object_name = x.string[3:-1]
+                print(in_object_name)
                 in_list = True
-                paragraph.text = paragraph.text.replace(x.group(0), " ")
+                del_paragraphs.append(paragraph)
 
             # find's the end of a list
             if x := re.search(end_list_regex, paragraph.text):
+                print(in_object_name)
+
+                del_paragraphs.append(paragraph)
+                lst_paragraphs.pop()        # remove the last value because its the closing tag
+
+                for value in data[in_object_name][1:]:
+                    for p in lst_paragraphs:
+                        insert_paragraph(
+                            document,
+                            pi + idx_counter,
+                            fill_paragraph(data, value, p),
+                        )
+                        idx_counter += 1
                 in_object_name = None
                 in_list = False
-                in_list_index += 1
-                paragraph.text = paragraph.text.replace(x.group(0), " ")
+                lst_paragraphs.clear()
+
+        # deletes the unused paragraphs
+        for p in del_paragraphs:
+            delete_paragraph(p)
+
+        del_paragraphs = []
 
         # iterate through tables in document
         # find json table names to iterate through
@@ -306,7 +307,8 @@ def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
                         if replace := re.search(list_value_regex, paragraph.text):
                             paragraph.text = paragraph.text.replace(
                                 replace.group(0),
-                                data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]]
+                                data[table_names[idx][3:-1]
+                                     ][x][replace.group(0)[3:-1]]
                             )
 
         document.save(filled_file_name)
