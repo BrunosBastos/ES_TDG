@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest selenium
+        pip install flake8 pytest 
         if [ -f StoreService/requirements.txt ]; then pip install -r StoreService/requirements.txt; fi
         if [ -f RetrieveService/requirements.txt ]; then pip install -r RetrieveService/requirements.txt; fi
         if [ -f TemplateFillingService/requirements.txt ]; then pip install -r TemplateFillingService/requirements.txt; fi
@@ -49,10 +49,4 @@ jobs:
       run: |
         cd MetricsService/
         pytest
-    - name: Frontend
-      run: |
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo apt install ./google-chrome-stable_current_amd64.deb
-        cd frontend/src/test
-        python3 test.py
 
