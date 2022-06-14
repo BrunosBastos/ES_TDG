@@ -8,11 +8,9 @@ class TestTestlogin():
     def setup_method(self):
         self.driver = webdriver.Chrome('frontend/chromedriver')
         self.vars = {}
-  
 
     def teardown_method(self):
         self.driver.quit()
-    
 
     def test_testlogin(self):
         self.driver.get("http://18.215.185.124/")
