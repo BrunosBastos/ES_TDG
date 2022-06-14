@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 import ShowFiles from './pages/ShowFiles';
+import Metrics from './pages/Metrics';
 
 
 // ----------------------------------------------------------------------
@@ -21,7 +22,15 @@ const Element = ({as, include}) => {
 
 }
 
-export default function Router() {
+export default function Router(props) {
+  if (!props.token) {
+    return useRoutes([
+      {
+        path: "*", element: <Login />
+      }
+    ])
+  }
+
   return useRoutes([
     {
       path: '/dashboard',
@@ -29,6 +38,7 @@ export default function Router() {
       children: [
         { path: 'app', element: <DashboardApp /> },
         { path: 'files', element: <ShowFiles />},
+        { path: 'metrics', element: <Metrics />},
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },

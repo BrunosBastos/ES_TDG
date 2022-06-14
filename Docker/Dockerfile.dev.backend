@@ -1,0 +1,16 @@
+FROM python:3.9
+
+
+COPY .aws/credentials /root/.aws/credentials
+
+WORKDIR /backend
+
+COPY ./requirements.txt /backend/requirements.txt
+
+RUN pip install  --upgrade -r /backend/requirements.txt
+
+WORKDIR /backend/src
+
+COPY src/ .
+
+CMD ["uvicorn", "main:app",  "--host", "0.0.0.0", "--port", "8000"]
