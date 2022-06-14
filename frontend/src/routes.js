@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 import ShowFiles from './pages/ShowFiles';
+import Help from './pages/Help';
 import Metrics from './pages/Metrics';
 
 
@@ -38,6 +39,7 @@ export default function Router(props) {
       children: [
         { path: 'app', element: <DashboardApp /> },
         { path: 'files', element: <ShowFiles />},
+        { path: 'help', element: <Help />},
         { path: 'metrics', element: <Metrics />},
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },

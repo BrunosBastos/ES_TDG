@@ -110,7 +110,12 @@ export default function FilesListTemplates() {
         formData.set('output_filename', filledFilename);
         formData.set('retrieval_filename', selected);
         service.uploadJsonData(formData)
-            .then(res => res.json())
+            .then(res => {
+                if(!res.ok) {
+                    return Promise.reject("Invalid json file.")
+                }
+                return res.json();
+            })
             .then(res => toast.success("Successfully filled the template."))
             .catch(error => toast.error(error));
 
