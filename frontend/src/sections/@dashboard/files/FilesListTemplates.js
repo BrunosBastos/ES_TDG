@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 import { toast } from 'react-toastify';
 // material
 import {
@@ -24,10 +24,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import IconButton from '@mui/material/IconButton';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 // components
@@ -35,11 +35,13 @@ import Searchbar from 'src/components/Searchbar';
 // services
 import FileService from 'src/services/FileService';
 //
-import { config } from 'src/consts';
+import word from 'src/assets/word.svg';
+import excel from 'src/assets/excel.svg';
+import powerpoint from 'src/assets/powerpoint.svg';
 
 const service = FileService.getInstance();
 
-export default function ListTemplates() {
+export default function FilesListTemplates() {
     const [rows, setRows] = useState(null);
     const [selected, setSelected] = useState("");        // contains the path of the selected template
     const [file, setFile] = useState(null);
@@ -50,6 +52,9 @@ export default function ListTemplates() {
     const [sortOrder, setSortOrder] = useState(true);
     const [search, setSearch] = useState("");
     const [fileFormat, setFileFormat] = useState("");
+    const [fileType, setFileType] = useState("");
+
+    const link = createRef();
 
     const handleClickOpen = (templateType, templateFormat, templateName, fill) => {
         setSelected(templateType + "/" + templateFormat + "/" + templateName);
@@ -105,7 +110,12 @@ export default function ListTemplates() {
         formData.set('output_filename', filledFilename);
         formData.set('retrieval_filename', selected);
         service.uploadJsonData(formData)
-            .then(res => res.json())
+            .then(res => {
+                if(!res.ok) {
+                    return Promise.reject("Invalid json file.")
+                }
+                return res.json();
+            })
             .then(res => toast.success("Successfully filled the template."))
             .catch(error => toast.error(error));
 
@@ -125,8 +135,8 @@ export default function ListTemplates() {
         service.deleteFile(selected)
             .then(res => res.json())
             .then(res => {
-                toast.success("Successfully deleted file " + selected)    
-                setRows(rows.filter((r) => 
+                toast.success("Successfully deleted file " + selected)
+                setRows(rows.filter((r) =>
                     r.type + "/" + r.format + "/" + r.name !== selected
                 ))
             })
@@ -136,12 +146,31 @@ export default function ListTemplates() {
     };
 
     /**
+     * Checks if user can download by requesting the API. 
+     * Then the user is authenticated it returns a blob with the file.
+     * @param {*} path  Path to the file 
+     */
+    const downloadFile = (path) => {
+
+        service.downloadFile(path)
+            .then((res) => res.blob())
+            .then((blob) => {
+                const href = window.URL.createObjectURL(blob);
+    
+                link.current.download = path.split("/").slice(-1).pop();
+                link.current.href = href;
+                
+                link.current.click();
+            })
+    }
+
+
+    /**
      * Takes a string as input and returns the first letter as uppercase
      * @param {*} str   The string to be capitalize
      * @returns         The same string but the first letter is not uppercase
      */
     const capitalize = (str) => str[0].toUpperCase() + str.slice(1);
-
 
     /**
      * Returns true if the value is null, undefined or a empty string, and false otherwise.
@@ -159,7 +188,8 @@ export default function ListTemplates() {
 
     /** The sorted `rows` array according to `sortKey` and `sortOrder` */
     const filteredRows = rows && rows
-        .filter((r) => (isEmpty(search) || isIncluded(search, r.name)) && (isEmpty(fileFormat) || fileFormat === r.format))
+        .filter((r) => (isEmpty(search) || isIncluded(search, r.name))
+            && (isEmpty(fileFormat) || fileFormat === r.format) && (isEmpty(fileType) || fileType === r.type))
         .sort((a, b) => isEmpty(a[sortKey]) ? 1 : isEmpty(b[sortKey]) ? -1
             : (a[sortKey] > b[sortKey]) ? (-1) ** !sortOrder : (-1) ** sortOrder);
 
@@ -177,7 +207,7 @@ export default function ListTemplates() {
 
     return (
         <Card>
-            <CardHeader title={"List Files"} subheader={"See your templates"} />
+            <CardHeader title={"Own Templates"} subheader={"See your templates"} />
             <Box sx={{ p: 3, pb: 1, display: "flex" }}>
                 <Searchbar placeholder='Search template...' handleSearch={setSearch} />
 
@@ -199,6 +229,22 @@ export default function ListTemplates() {
                     </Select>
                 </FormControl>
 
+                <FormControl sx={{ m: 1, minWidth: 180 }}>
+                    <InputLabel id="select-template-type">File Type</InputLabel>
+                    <Select
+                        labelId="select-template-type"
+                        id="select-template-type"
+                        value={fileType}
+                        label="File Type"
+                        onChange={(e) => setFileType(e.target.value)}
+                    >
+                        <MenuItem value="">
+                            <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={"template"}>Template</MenuItem>
+                        <MenuItem value={"filled"}>Filled</MenuItem>
+                    </Select>
+                </FormControl>
             </Box>
             <Box sx={{ p: 3, pb: 1, minHeight: 250, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }} dir="ltr">
                 {rows === null ?
@@ -210,22 +256,20 @@ export default function ListTemplates() {
                         </h2>
                         :
                         <TableContainer component={Paper}>
-                            <Table stickyHeader sx={{ minWidth: 650 }}>
+                            <Table stickyHeader sx={{ minWidth: 650, '& td': { boxSizing: 'padding-box' } }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell style={{ width: "50%" }} align="left">
+                                        <TableCell style={{ width: "5%" }} align="left" />
+                                        <TableCell style={{ width: "25%" }} align="left">
                                             <HeadCellSort cellKey={'name'}>Name</HeadCellSort>
                                         </TableCell>
-                                        <TableCell style={{ width: "10%" }} align="left">
-                                            <HeadCellSort cellKey={'type'}>Type</HeadCellSort>
-                                        </TableCell>
-                                        <TableCell style={{ width: "10%" }} align="left">
-                                            <HeadCellSort cellKey={'format'}>Format</HeadCellSort>
-                                        </TableCell>
-                                        <TableCell style={{ width: "15%" }} align="right">
+                                        <TableCell style={{ width: "20%" }} align="right">
                                             <HeadCellSort cellKey={'size'} align="right">Size</HeadCellSort>
                                         </TableCell>
-                                        <TableCell style={{ width: "5%" }} align="left" />
+                                        <TableCell style={{ width: "20%" }} align="right">
+                                            <HeadCellSort cellKey={'type'} align="right">Type</HeadCellSort>
+                                        </TableCell>
+                                        <TableCell style={{ width: "10%" }} align="center" />
                                         <TableCell style={{ width: "5%" }} align="left" />
                                         <TableCell style={{ width: "5%" }} align="left" />
                                     </TableRow>
@@ -236,30 +280,30 @@ export default function ListTemplates() {
                                             key={row.name}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell style={{ width: "50%" }} component="th" scope="row">
+                                            <TableCell style={{ width: "5%" }} component="th" scope="row">
+                                                <img style={{ maxWidth: 32 }} src={{ word, excel, powerpoint }[row.format]} alt={row.format} />
+                                            </TableCell>
+                                            <TableCell style={{ width: "25%" }} component="th" scope="row">
                                                 {row.name}
                                             </TableCell>
-                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
-                                                {capitalize(row.type)}
-                                            </TableCell>
-                                            <TableCell style={{ width: "10%" }} component="th" scope="row">
-                                                {capitalize(row.format)}
-                                            </TableCell>
-                                            <TableCell style={{ width: "15%" }} align="right">{convertSize(row.size)}</TableCell>
-                                            <TableCell style={{ width: "5%" }} align="left" >
-                                                {row.type === "template" && <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
-                                                    Fill
-                                                </Button>}
+                                            <TableCell style={{ width: "20%" }} align="right">{convertSize(row.size)}</TableCell>
+                                            <TableCell style={{ width: "20%" }} align="right">{capitalize(row.type)}</TableCell>
+                                            <TableCell style={{ width: "15%" }} align="center" >
+                                                {row.type === "template" &&
+                                                    <Button variant="outlined" onClick={() => { handleClickOpen("template", row.format, row.name, true) }}>
+                                                        Fill
+                                                    </Button>
+                                                }
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" href={config.API_URL + "/2/files/" + row.type + "/" + row.format + "/" + row.name}>
+                                                <IconButton color="primary" onClick={() => downloadFile(row.type + "/" + row.format + "/" + row.name)} >
                                                     <DownloadIcon />
-                                                </Button>
+                                                </IconButton>
                                             </TableCell>
                                             <TableCell style={{ width: "5%" }} align="left" >
-                                                <Button variant="outlined" color="error" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
+                                                <IconButton color="error" component="span" onClick={() => { handleClickOpen(row.type, row.format, row.name, false) }}>
                                                     <DeleteIcon />
-                                                </Button>
+                                                </IconButton>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -268,6 +312,8 @@ export default function ListTemplates() {
                         </TableContainer>
                 }
             </Box>
+            <a style={{display: 'none'}} ref={link}></a>
+
             <Dialog open={open} onClose={handleClose}>
                 {openFill ?
                     <>
@@ -300,7 +346,6 @@ export default function ListTemplates() {
                                     </Button>
                                 </div>
                             </div>
-
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handleClose}>Cancel</Button>
@@ -321,7 +366,6 @@ export default function ListTemplates() {
                         </DialogActions>
                     </>}
             </Dialog>
-
         </Card>
     )
 }

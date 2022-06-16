@@ -1,0 +1,49 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "dev" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Build frontend image
+      run: |
+        git pull
+        cd frontend/
+        echo "REACT_APP_API_URL = 'http://18.215.185.124/api'" > .env
+        yarn install && yarn build
+        docker build -f Dockerfile.frontend -t ghcr.io/brunosbastos/es_tdg/frontend:latest .
+    - name: Build store service image
+      run: |
+        cd StoreService/
+        docker build -f Dockerfile.backend -t ghcr.io/brunosbastos/es_tdg/store-service:latest .
+    - name: Build retrieve service image
+      run: |
+        cd RetrieveService/
+        docker build -f Dockerfile.backend -t ghcr.io/brunosbastos/es_tdg/retrieve-service:latest .
+    - name: Build Filling service image
+      run: |
+        cd TemplateFillingService/
+        docker build -f Dockerfile.backend -t ghcr.io/brunosbastos/es_tdg/filling-service:latest .
+    - name: Push Image
+      run: |
+        docker push ghcr.io/brunosbastos/es_tdg/frontend:latest
+        docker push ghcr.io/brunosbastos/es_tdg/store-service:latest
+        docker push ghcr.io/brunosbastos/es_tdg/retrieve-service:latest
+        docker push ghcr.io/brunosbastos/es_tdg/filling-service:latest
+
+

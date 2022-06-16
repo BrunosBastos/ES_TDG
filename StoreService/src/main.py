@@ -1,9 +1,9 @@
 import logging
-from fastapi import FastAPI, UploadFile, File, Depends, Form
+from fastapi import FastAPI, UploadFile, File, Depends, Form, Header
 from fastapi.responses import JSONResponse
 from botocore.exceptions import ClientError
 from fastapi.middleware.cors import CORSMiddleware
-
+from typing import Optional
 from utils import create_response, get_client_s3, get_file_format_extension
 
 # Logger
@@ -28,6 +28,7 @@ app.add_middleware(
 async def post_template(
     upload_file: UploadFile = File(...),
     filename: str = Form(),
+    username: Optional[str] = Header(None),
     s3=Depends(get_client_s3)
 ) -> JSONResponse:
     """
@@ -50,6 +51,10 @@ async def post_template(
     """
 
     try:
+
+        if not username:
+            return create_response(status_code=401, message="Not authenticated.")
+
         # checks for the extension of the file
         file_format, file_extension = get_file_format_extension(upload_file.filename)
 
@@ -62,7 +67,7 @@ async def post_template(
             filename += "." + file_extension
 
         # saves in the templates directory with the file format correct
-        path = "template/" + file_format + "/" + filename
+        path = username + "/template/" + file_format + "/" + filename
 
         s3.upload_fileobj(upload_file.file, bucket_name, path)
     except ClientError as e:
@@ -77,6 +82,7 @@ async def delete_file(
     file_type: str,
     file_format: str,
     file_name: str,
+    username: Optional[str] = Header(None),
     s3=Depends(get_client_s3)
 ) -> JSONResponse:
     """
@@ -100,11 +106,21 @@ async def delete_file(
     """
 
     try:
+
+        if not username:
+            return create_response(status_code=401, message="Not authenticated.")
+
+        filepath = username + "/" + file_type + "/" + file_format + "/" + file_name
+
+        # check if file exists, throws if it does not
+        s3.head_object(Bucket=bucket_name, Key=filepath)
+
         # deletes the file
-        filepath = file_type + "/" + file_format + "/" + file_name
         s3.delete_object(Bucket=bucket_name, Key=filepath)
 
     except ClientError as e:
+        if e.response['ResponseMetadata']['HTTPStatusCode'] == 404:
+            return create_response(status_code=404, message="File does not exist.")
         logging.debug(e)
         return create_response(status_code=400, message=str(e))
 

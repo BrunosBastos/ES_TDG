@@ -1,14 +1,21 @@
-from fastapi import FastAPI, UploadFile, File, Depends, Form
+from fastapi import FastAPI, UploadFile, File, Depends, Form, Header
 from fastapi.responses import JSONResponse
 from pptx import Presentation
 from botocore.exceptions import ClientError
-from bs4 import BeautifulSoup
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 import openpyxl as oxl
 import json
 import re
-from utils import create_response, get_client_s3, get_file_extension, duplicate_slide
+from utils import create_response,    \
+                  delete_paragraph,   \
+                  get_client_s3,      \
+                  get_file_extension, \
+                  duplicate_slide,    \
+                  fill_paragraph,     \
+                  insert_paragraph
 import docx
+from typing import Optional
 
 app = FastAPI()
 bucket_name = "tdg-s3-bucket"
@@ -19,12 +26,21 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/api/3/fill")
 async def post_template(
         upload_file: UploadFile = File(...),
         retrieval_filename: str = Form(),
         output_filename: str = Form(),
+        username: Optional[str] = Header(None),
         s3=Depends(get_client_s3)
 ) -> JSONResponse:
     """
@@ -49,10 +65,19 @@ async def post_template(
     """
     try:
 
+        if not username:
+            return create_response(status_code=401, message="Not authenticated.")
+
         _, t_format, t_filename = retrieval_filename.split("/")
 
-        # load json data
-        data = json.load(upload_file.file)
+        retrieval_filename = username + "/" + retrieval_filename
+
+        try:
+            # load json data
+            data = json.load(upload_file.file)
+        except Exception:
+            return create_response(status_code=400,
+                                   message="Invalid Json file format.")
 
         s3.download_file(
             bucket_name, retrieval_filename, t_filename
@@ -63,19 +88,12 @@ async def post_template(
         if not output_filename.endswith("." + file_extension):
             output_filename += "." + file_extension
 
-        # fill excel template
-        if file_extension == "xlsx":
-            fill_excel_template(t_filename, data, output_filename)
+        if not fill_template(file_extension, t_filename, data, output_filename):
+            return create_response(status_code=400,
+                                   message="Could not fill template it the provided data." +
+                                   "Check if the file matches the requirements.")
 
-        # fill pptx template
-        elif file_extension == "pptx" or file_extension == "ppt":
-            fill_ppt_template(t_filename, data, output_filename)
-
-        # fill pptx template
-        elif file_extension == "docx":
-            fill_docx_template(t_filename, data, output_filename)
-
-        path = "filled/" + t_format + "/" + output_filename
+        path = username + "/filled/" + t_format + "/" + output_filename
 
         s3.upload_fileobj(
             open(output_filename, "rb"), bucket_name, path
@@ -86,6 +104,40 @@ async def post_template(
     except ClientError as e:
         logging.debug(e)
         return create_response(status_code=400, message=e)
+
+
+def fill_template(file_extension, t_filename, data, output_filename):
+    """
+    Chooses the right function to handle the template filling task.
+
+    Parameters
+    ----------
+        file_extension : `str`
+            The extension of the file
+        t_filename : `str`
+            Name of the template
+        data : `json`
+            Json data already converted to a dict
+        output_filename : `str`
+            Name of the resulting file
+
+    Returns
+    -------
+        valid : `bool`
+            True if there is no error, else False
+    """
+
+    # fill excel template
+    if file_extension == "xlsx":
+        return fill_excel_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "pptx" or file_extension == "ppt":
+        return fill_ppt_template(t_filename, data, output_filename)
+
+    # fill pptx template
+    elif file_extension == "docx":
+        return fill_docx_template(t_filename, data, output_filename)
 
 
 def fill_excel_template(template_name, data, filled_file_name):
@@ -100,29 +152,37 @@ def fill_excel_template(template_name, data, filled_file_name):
             The JSON data to be used in filling
         filled_file_name : `str`
             The name of the resulting file
+    Returns
+    -------
+        valid: `bool`
+            True if there was no error else False
     """
 
-    # load template
-    template = oxl.load_workbook(template_name)
+    try:
+        # load template
+        template = oxl.load_workbook(template_name)
 
-    i = 0
-    # go through all sheets
-    for sheet in template.sheetnames:
+        i = 0
+        # go through all sheets
+        for sheet in template.sheetnames:
 
-        if i > 0 and sheet not in template:
-            # create new sheet
-            ws = template.create_sheet(index=i, title=sheet)
-        else:
-            ws = template[sheet]
+            if i > 0 and sheet not in template:
+                # create new sheet
+                ws = template.create_sheet(index=i, title=sheet)
+            else:
+                ws = template[sheet]
 
-        # fill sheet with data
-        for cell in data[i][sheet]:
-            cell_number = list(cell.keys())
-            ws[cell_number[0]] = cell[cell_number[0]]
+            # fill sheet with data
+            for cell in data[i][sheet]:
+                cell_number = list(cell.keys())
+                ws[cell_number[0]] = cell[cell_number[0]]
 
-        i += 1
+            i += 1
 
-    template.save(filled_file_name)
+        template.save(filled_file_name)
+        return True
+    except Exception:
+        return False
 
 
 def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
@@ -137,109 +197,124 @@ def fill_docx_template(template_name, data, filled_file_name):  # noqa: C901
             The JSON data to be used in filling
         filled_file_name : `str`
             The name of the resulting file
+    Returns
+    -------
+        valid: `bool`
+            True if there was no error else False
     """
 
-    # open file
-    document = docx.Document(template_name)
+    try:
+        # open file
+        document = docx.Document(template_name)
 
-    # regex
-    value_regex = re.compile(r"\$\{\w+}*")
-    begin_list_regex = re.compile(r"\$\{#\w+}*")
-    end_list_regex = re.compile(r"\$\{\w+#}*")
-    list_value_regex = re.compile(r"\$\{\.\w+}*")
+        # regex
+        begin_list_regex = re.compile(r"\$\{#\w+}*")
+        end_list_regex = re.compile(r"\$\{\w+#}*")
+        list_value_regex = re.compile(r"\$\{\.\w+}*")
 
-    # iterate through paragraphs in document
-    in_list = False
-    in_list_index = 0
-    in_object_name = None
+        # iterate through paragraphs in document
+        in_list = False
+        in_object_name = None
 
-    for paragraph in document.paragraphs:
+        # stores the paragraphs that are inside a list
+        lst_paragraphs = []
+        del_paragraphs = []
+        idx_counter = 0
 
-        # it's not inside a list
-        if not in_list:
-            if x := re.search(value_regex, paragraph.text):
-                replace = x.group(0)[2:-1]
+        for pi, paragraph in enumerate(document.paragraphs):
 
-                # it's just a string
-                if isinstance(data[replace], str):
-                    paragraph.text = paragraph.text.replace(x.group(0), data[replace])
+            local_data = None
+            if in_list:
+                local_data = data[in_object_name][0]
+                lst_paragraphs.append(paragraph.text)
 
-                # it's an object
-                elif isinstance(data[replace], dict):
+            paragraph.text = fill_paragraph(data, local_data, paragraph.text)
 
-                    # if type isn't html
-                    if data[replace]["type"] != "html":
-                        paragraph.text = paragraph.text.replace(x.group(0), data[replace]["value"])
+            # find's the beginning of a list
+            if x := re.search(begin_list_regex, paragraph.text):
+                in_object_name = x.string[3:-1]
+                print(in_object_name)
+                in_list = True
+                del_paragraphs.append(paragraph)
 
-                    # if type is html
-                    else:
-                        html = BeautifulSoup(data[replace]["value"], "html.parser")
-                        paragraph.text = paragraph.text.replace(x.group(0), html.prettify())
+            # find's the end of a list
+            if x := re.search(end_list_regex, paragraph.text):
+                print(in_object_name)
 
-        # it's inside a list
-        # lists only have values inside it
-        if in_list:
-            if x := re.search(list_value_regex, paragraph.text):
-                replace = x.group(0)[3:-1]
-                paragraph.text = paragraph.text.replace(x.group(0), data[in_object_name][in_list_index][replace])
+                del_paragraphs.append(paragraph)
+                lst_paragraphs.pop()        # remove the last value because its the closing tag
 
-        # find's the beginning of a list
-        if x := re.search(begin_list_regex, paragraph.text):
-            in_object_name = x.string[3:-1]
-            in_list = True
-            paragraph.text = paragraph.text.replace(x.group(0), " ")
+                for value in data[in_object_name][1:]:
+                    for p in lst_paragraphs:
+                        insert_paragraph(
+                            document,
+                            pi + idx_counter,
+                            fill_paragraph(data, value, p),
+                        )
+                        idx_counter += 1
+                in_object_name = None
+                in_list = False
+                lst_paragraphs.clear()
 
-        # find's the end of a list
-        if x := re.search(end_list_regex, paragraph.text):
-            in_object_name = None
-            in_list = False
-            in_list_index += 1
-            paragraph.text = paragraph.text.replace(x.group(0), " ")
+        # deletes the unused paragraphs
+        for p in del_paragraphs:
+            delete_paragraph(p)
 
-    # iterate through tables in document
-    # find json table names to iterate through
-    table_names = []
-    for idx, table in enumerate(document.tables):
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    if x := re.search(begin_list_regex, paragraph.text):
-                        table_names.append(x.group(0))
+        del_paragraphs = []
 
-    # add enough rows and cells to the table according to json size
-    cell_info = []
-    for idx, table in enumerate(document.tables):
-        name = table_names[idx][3:-1]
+        # iterate through tables in document
+        # find json table names to iterate through
+        table_names = []
+        for idx, table in enumerate(document.tables):
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        if x := re.search(begin_list_regex, paragraph.text):
+                            table_names.append(x.group(0))
 
-        # add missing rows
-        while len(table.rows) < len(data[name]) + 1:
-            table.add_row()
+        # add enough rows and cells to the table according to json size
+        cell_info = []
+        for idx, table in enumerate(document.tables):
+            name = table_names[idx][3:-1]
 
-        # get cell info for replication
-        for cell in table.rows[1].cells:
-            text = [paragraph.text for paragraph in cell.paragraphs if paragraph.text != ""]
-            cell_info.append(text)
+            # add missing rows
+            while len(table.rows) < len(data[name]) + 1:
+                table.add_row()
 
-        # replicate info on each cell
-        for row in table.rows[1:]:
-            for x, cell in enumerate(row.cells):
-                cell.paragraphs[0].text = cell_info[x]
+            # get cell info for replication
+            for cell in table.rows[1].cells:
+                text = [
+                    paragraph.text for paragraph in cell.paragraphs if paragraph.text != ""]
+                cell_info.append(text)
 
-        # fill table rows with json data
-        for x, row in enumerate(table.rows[1:]):
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    if replace := re.search(begin_list_regex, paragraph.text):
-                        paragraph.text = paragraph.text.replace(replace.group(0), "")
+            # replicate info on each cell
+            for row in table.rows[1:]:
+                for x, cell in enumerate(row.cells):
+                    cell.paragraphs[0].text = cell_info[x]
 
-                    if replace := re.search(end_list_regex, paragraph.text):
-                        paragraph.text = paragraph.text.replace(replace.group(0), "")
+            # fill table rows with json data
+            for x, row in enumerate(table.rows[1:]):
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        if replace := re.search(begin_list_regex, paragraph.text):
+                            paragraph.text = paragraph.text.replace(
+                                replace.group(0), "")
 
-                    if replace := re.search(list_value_regex, paragraph.text):
-                        paragraph.text = paragraph.text.replace(replace.group(0),
-                                                                data[table_names[idx][3:-1]][x][replace.group(0)[3:-1]])
+                        if replace := re.search(end_list_regex, paragraph.text):
+                            paragraph.text = paragraph.text.replace(
+                                replace.group(0), "")
 
-    document.save(filled_file_name)
+                        if replace := re.search(list_value_regex, paragraph.text):
+                            paragraph.text = paragraph.text.replace(
+                                replace.group(0),
+                                data[table_names[idx][3:-1]
+                                     ][x][replace.group(0)[3:-1]]
+                            )
+
+        document.save(filled_file_name)
+        return True
+    except Exception:
+        return False
 
 
 def fill_ppt_template(template_name, data, filled_file_name):
@@ -254,33 +329,43 @@ def fill_ppt_template(template_name, data, filled_file_name):
             The JSON data to be used in filling
         filled_file_name : `str`
             The name of the resulting file
+    Returns
+    -------
+        valid: `bool`
+            True if there was no error else False
     """
 
-    # load template
-    template = Presentation(template_name)
+    try:
+        # load template
+        template = Presentation(template_name)
 
-    [duplicate_slide(template, 0) for _ in range(1, len(data["records"]))]
+        [duplicate_slide(template, 0) for _ in range(1, len(data["records"]))]
 
-    i = 0
-    # go through data
-    for slide_data in data["records"]:
-        slide_shape = template.slides[i]
-        for slide_t in slide_shape.shapes:
-            slide_text = slide_t.text_frame
-            for slide_paragraph in slide_text.paragraphs:
-                whole_text = "".join([r.text for r in slide_paragraph.runs])
-                data_params = re.findall(r"\{([A-Za-z0-9_]+)\}", whole_text)
-                for d in data_params:
-                    if d in slide_data.keys():
-                        whole_text = whole_text.replace(f"{{{d}}}", slide_data[d])
-                for idx, run in enumerate(slide_paragraph.runs):
-                    if idx == 0:
-                        continue
-                    p = slide_paragraph._p
-                    p.remove(run._r)
-                slide_paragraph.runs[0].text = whole_text
+        i = 0
+        # go through data
+        for slide_data in data["records"]:
+            slide_shape = template.slides[i]
+            for slide_t in slide_shape.shapes:
+                slide_text = slide_t.text_frame
+                for slide_paragraph in slide_text.paragraphs:
+                    whole_text = "".join(
+                        [r.text for r in slide_paragraph.runs])
+                    data_params = re.findall(
+                        r"\{([A-Za-z0-9_]+)\}", whole_text)
+                    for d in data_params:
+                        if d in slide_data.keys():
+                            whole_text = whole_text.replace(
+                                f"{{{d}}}", slide_data[d])
+                    for idx, run in enumerate(slide_paragraph.runs):
+                        if idx == 0:
+                            continue
+                        p = slide_paragraph._p
+                        p.remove(run._r)
+                    slide_paragraph.runs[0].text = whole_text
 
-        i += 1
+            i += 1
 
-    template.save(filled_file_name)
-    return
+        template.save(filled_file_name)
+        return True
+    except Exception:
+        return False
